@@ -5,7 +5,8 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --fix --ignore-path .gitignore"
+    "lint": "eslint . --fix --ignore-path .gitignore",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@mdi/font": "7.0.96",
@@ -22,7 +23,9 @@
     "@vitejs/plugin-vue": "^3.0.3",
     "@vue/eslint-config-typescript": "^11.0.0",
     "eslint": "^8.22.0",
+    "eslint-config-prettier": "^8.7.0",
     "eslint-plugin-vue": "^9.3.0",
+    "prettier": "^2.8.4",
     "typescript": "^4.0.0",
     "vite": "^3.0.9",
     "vite-plugin-vuetify": "^1.0.0-alpha.12",
