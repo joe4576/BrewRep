@@ -5,6 +5,7 @@ import { User } from "@server/models/user.model";
 
 const users = ref<User[]>([]);
 const userNameInput = ref("");
+const userIdInput = ref("");
 
 const refresh = async () => {
   users.value = await client.user.getAllUsers.query();
@@ -22,6 +23,11 @@ const createNewUser = async () => {
   await refresh();
 };
 
+const getUserById = async () => {
+  const user = await client.user.getUserById.query(userIdInput.value);
+  console.log(user);
+};
+
 onMounted(refresh);
 </script>
 
@@ -32,12 +38,12 @@ onMounted(refresh);
   <v-container>
     <v-row>
       <v-col cols="6">
-        <v-text-field v-model="userNameInput" />
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="auto">
+        <v-text-field v-model="userNameInput" label="user name input" />
         <v-btn @click="createNewUser">Create new user</v-btn>
+      </v-col>
+      <v-col cols="6">
+        <v-text-field v-model="userIdInput" label="user id input" />
+        <v-btn @click="getUserById">Get user by id</v-btn>
       </v-col>
     </v-row>
   </v-container>
