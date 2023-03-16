@@ -1,20 +1,20 @@
-import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
+import { User, userValidator } from "../models/user.model";
 
 export const userRouter = router({
-  getAllUsers: publicProcedure
-    .input(
-      z.object({
-        valid: z.boolean(),
-      })
-    )
-    .query(({ ctx, input }) => {
-      console.log(ctx.session);
+  getAllUsers: publicProcedure.query(async ({ ctx }) => {
+    const allUsers: User[] = await ctx.prisma.user.findMany();
+    return allUsers;
+  }),
+  createUser: publicProcedure
+    .input(userValidator)
+    .mutation(async ({ input, ctx }) => {
+      const newUser: User = await ctx.prisma.user.create({
+        data: {
+          name: input.name,
+        },
+      });
 
-      const { valid } = input;
-
-      return {
-        valid,
-      };
+      return newUser;
     }),
 });
