@@ -1,7 +1,8 @@
-import { publicProcedure, router } from "../trpc";
-import { User, userValidator } from "../models/user.model";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
+import { User } from "../models/user.model";
 import { UserService } from "../services/userService";
 import { uuidValidator } from "../models/validators/commonValidators";
+import { TRPCError } from "@trpc/server";
 
 export const userRouter = router({
   getUserById: publicProcedure
@@ -17,12 +18,22 @@ export const userRouter = router({
 
     return await userService.getAllUsers();
   }),
-  createUser: publicProcedure
-    .input(userValidator)
-    .mutation(async ({ input, ctx }) => {
-      const userService = new UserService(ctx.prisma);
-      const newUser = await userService.createUser(input);
+  getCurrentUser: protectedProcedure.query(async ({ ctx }) => {
+    const { prisma, session } = ctx;
 
-      return newUser;
-    }),
+    const userService = new UserService(prisma);
+
+    let currentUser: User | null;
+
+    try {
+      currentUser = await userService.getCurrentUser(session.user.uid);
+    } catch (e) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        cause: e,
+      });
+    }
+
+    return currentUser;
+  }),
 });

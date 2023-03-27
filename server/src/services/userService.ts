@@ -1,12 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { Context } from "../context";
 import { User } from "../models/user.model";
 import { BaseService } from "./baseService";
 
 export class UserService extends BaseService {
-  constructor(prisma: PrismaClient) {
-    super(prisma);
-  }
-
   public async getUserById(id: string): Promise<User | null> {
     const user: User | null = await this.prisma.user.findFirst({
       where: {
@@ -22,13 +18,17 @@ export class UserService extends BaseService {
     return allUsers;
   }
 
-  public async createUser(user: User): Promise<User> {
-    const newUser: User = await this.prisma.user.create({
-      data: {
-        ...user,
+  public async getCurrentUser(uid: string): Promise<User> {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        uid,
       },
     });
 
-    return newUser;
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return user;
   }
 }

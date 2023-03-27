@@ -13,4 +13,10 @@ const router = createRouter({
   routes,
 });
 
+router.beforeEach((to, from, next) => {
+  // TODO check for user in user store.
+  // If null, redirect to login page
+  next();
+});
+
 export default router;

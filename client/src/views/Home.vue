@@ -1,50 +1,75 @@
 <script lang="ts" setup>
-import { client } from "@/api/client";
-import { onMounted, ref } from "vue";
-import { User } from "@server/models/user.model";
+import { useUserStore } from "@/store/userStore";
+import { ref } from "vue";
+import clientAuthenticationService from "@/services/clientAuthenticationService";
+import cookieService from "@/services/cookieService";
+import { useRouter } from "vue-router";
 
-const users = ref<User[]>([]);
-const userNameInput = ref("");
-const userIdInput = ref("");
+const userStore = useUserStore();
+const router = useRouter();
 
-const refresh = async () => {
-  users.value = await client.user.getAllUsers.query();
-};
+const emailAddress = ref("");
+const password = ref("");
 
-const createNewUser = async () => {
-  if (userNameInput.value.trim().length === 0) {
-    return;
+const register = async () => {
+  let sessionToken: string;
+
+  try {
+    sessionToken =
+      await clientAuthenticationService.registerWithEmailAndPassword(
+        emailAddress.value,
+        password.value
+      );
+  } catch (e) {
+    throw new Error("Failed to register", {
+      cause: e,
+    });
   }
 
-  await client.user.createUser.mutate({
-    name: userNameInput.value,
-  });
-
-  await refresh();
+  cookieService.setCookie("br-session", sessionToken);
+  await userStore.load();
 };
 
-const getUserById = async () => {
-  const user = await client.user.getUserById.query(userIdInput.value);
-  console.log(user);
+const logInWithEmailAndPassword = async () => {
+  let sessionToken: string;
+
+  try {
+    sessionToken = await clientAuthenticationService.loginWithEmailAndPassword(
+      emailAddress.value,
+      password.value
+    );
+  } catch (e) {
+    throw new Error("Failed to log in", {
+      cause: e,
+    });
+  }
+
+  cookieService.setCookie("br-session", sessionToken);
+  await userStore.load();
 };
 
-onMounted(refresh);
+const logOut = async () => {
+  userStore.clearState();
+  cookieService.removeCookie("br-session");
+  await router.push("/");
+};
 </script>
 
 <template>
-  <div>
-    <p v-if="users">{{ users }}</p>
-  </div>
   <v-container>
     <v-row>
       <v-col cols="6">
-        <v-text-field v-model="userNameInput" label="user name input" />
-        <v-btn @click="createNewUser">Create new user</v-btn>
+        <v-text-field v-model="emailAddress" label="email address" />
+        <v-text-field v-model="password" label="password" />
+        <v-btn color="primary" @click="logInWithEmailAndPassword">
+          Login in
+        </v-btn>
+        <v-btn color="secondary" @click="register">Regsiter</v-btn>
+        <v-btn color="danger" @click="logOut">Log out</v-btn>
       </v-col>
-      <v-col cols="6">
-        <v-text-field v-model="userIdInput" label="user id input" />
-        <v-btn @click="getUserById">Get user by id</v-btn>
-      </v-col>
+    </v-row>
+    <v-row v-if="userStore.user">
+      <pre>{{ userStore.user }}</pre>
     </v-row>
   </v-container>
 </template>
