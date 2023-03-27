@@ -4,13 +4,22 @@ import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 
 const prisma = new PrismaClient();
 
+// Session from firebase
+// TODO: add relevant fields
+interface Session {
+  uid: string;
+}
+
 // created for each request
 export const createContext = async ({
   req,
   res,
 }: CreateExpressContextOptions) => {
+  let session = null as Session | null;
+
   return {
     prisma,
+    session,
   };
 };
 

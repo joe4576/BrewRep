@@ -11,7 +11,22 @@ datasource db {
 }
 
 model User {
-  id      String      @id @default(uuid())
-  name    String
-  isAdmin Boolean @default(false)
+  id           String        @id @default(uuid())
+  name         String
+  isAdmin      Boolean       @default(false)
+  uid          String
+  tenantGroups TenantGroup[] 
+}
+
+model Tenant {
+  id           String      @id @default(uuid())
+  name         String
+  tenantGroup  TenantGroup @relation(fields: [tenantGroupId], references: [id])
+  tenantGroupId String
+}
+
+model TenantGroup {
+  id        String   @id @default(uuid())
+  tenants   Tenant[]
+  users     User[]   
 }
