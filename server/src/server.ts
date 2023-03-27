@@ -5,6 +5,7 @@ import { createContext } from "./context";
 import { authenticationRouter } from "./routers/authentication.router";
 import { userRouter } from "./routers/user.router";
 import { router } from "./trpc";
+import "./config/firebase";
 
 export const appRouter = router({
   user: userRouter,

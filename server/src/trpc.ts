@@ -6,8 +6,8 @@ const t = initTRPC.context<Context>().create();
 export const middleware = t.middleware;
 export const router = t.router;
 
-const isAuthed = t.middleware(({ next, ctx }) => {
-  if (!ctx.session?.uid) {
+const isAuthenticated = t.middleware(({ next, ctx }) => {
+  if (!ctx.session) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "There is no valid session token on the request",
@@ -23,4 +23,4 @@ const isAuthed = t.middleware(({ next, ctx }) => {
 });
 
 export const publicProcedure = t.procedure;
-export const protectedProcedure = t.procedure.use(isAuthed);
+export const protectedProcedure = t.procedure.use(isAuthenticated);
