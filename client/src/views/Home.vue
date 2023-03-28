@@ -56,20 +56,18 @@ const logOut = async () => {
 </script>
 
 <template>
-  <v-container>
-    <v-row>
-      <v-col cols="6">
-        <v-text-field v-model="emailAddress" label="email address" />
-        <v-text-field v-model="password" label="password" />
-        <v-btn color="primary" @click="logInWithEmailAndPassword">
-          Login in
-        </v-btn>
-        <v-btn color="secondary" @click="register">Regsiter</v-btn>
-        <v-btn color="danger" @click="logOut">Log out</v-btn>
-      </v-col>
-    </v-row>
-    <v-row v-if="userStore.user">
-      <pre>{{ userStore.user }}</pre>
-    </v-row>
-  </v-container>
+  <v-row>
+    <v-col cols="6">
+      <v-text-field v-model="emailAddress" label="email address" />
+      <v-text-field v-model="password" label="password" />
+      <v-btn color="primary" @click="logInWithEmailAndPassword">
+        Login in
+      </v-btn>
+      <v-btn color="secondary" @click="register">Regsiter</v-btn>
+      <v-btn color="danger" @click="logOut">Log out</v-btn>
+    </v-col>
+  </v-row>
+  <v-row v-if="userStore.user">
+    <pre>{{ userStore.user }}</pre>
+  </v-row>
 </template>

@@ -6,18 +6,32 @@
 
 import "@mdi/font/css/materialdesignicons.css";
 import "vuetify/styles";
-import { createVuetify } from "vuetify";
+import { createVuetify, ThemeDefinition } from "vuetify";
 
-// https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
+const light: ThemeDefinition = {
+  dark: false,
+  colors: {
+    primary: "#01579B",
+    secondary: "#B3E5FC",
+    background: "#FFFFFF",
+  },
+};
+
+const dark: ThemeDefinition = {
+  dark: true,
+  colors: {
+    primary: "#29B6F6",
+    secondary: "#01579B",
+    background: "#2c2c2c",
+  },
+};
+
 export default createVuetify({
   theme: {
+    defaultTheme: "light",
     themes: {
-      light: {
-        colors: {
-          primary: "#1867C0",
-          secondary: "#5CBBF6",
-        },
-      },
+      light,
+      dark,
     },
   },
 });
