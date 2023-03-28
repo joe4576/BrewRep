@@ -25,7 +25,7 @@ const menuItems: MenuItem[] = [
   {
     title: "Home",
     prependIcon: "mdi-home",
-    to: "/",
+    to: "/home",
   },
   {
     title: "Settings",

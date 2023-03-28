@@ -1,6 +1,6 @@
 import { User } from "@server/models/user.model";
 import { defineStore } from "pinia";
-import { reactive, toRefs } from "vue";
+import { computed, reactive, toRefs } from "vue";
 import cookieService from "@/services/cookieService";
 import { client } from "@/api/client";
 
@@ -43,9 +43,14 @@ export const useUserStore = defineStore("userStore", () => {
     }
   };
 
+  const isUserSignedIn = computed(() => {
+    return !!state.user;
+  });
+
   return {
     load,
     ...toRefs(state),
     clearState,
+    isUserSignedIn,
   };
 });
