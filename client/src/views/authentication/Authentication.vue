@@ -6,6 +6,7 @@ import BrPassword from "@/components/input/specialised/BrPassword.vue";
 import BrForm from "@/components/input/BrForm.vue";
 import { useFormValidation } from "@/composables/useFormValidation";
 import { useValidationRules } from "@/composables/useValidationRules";
+import { VCard } from "vuetify/components";
 
 interface AuthenticationProps {
   login: boolean;
@@ -45,7 +46,12 @@ const loginOrRegister = async () => {
 </script>
 
 <template>
-  <v-container class="align-self-center">
+  <v-container
+    :class="{
+      'align-self-center': true,
+      'px-0': $vuetify.display.smAndDown,
+    }"
+  >
     <v-row class="justify-center">
       <v-col cols="auto">
         <h4 class="text-h4">{{ title }}</h4>
@@ -53,8 +59,16 @@ const loginOrRegister = async () => {
     </v-row>
     <v-row class="justify-center mt-6">
       <v-col cols="12">
-        <v-card class="login-card pa-2" elevation="2">
-          <v-card-text class="pa-5">
+        <component
+          :is="$vuetify.display.smAndDown ? 'div' : VCard"
+          class="login-card pa-2"
+          elevation="2"
+        >
+          <v-card-text
+            :class="{
+              'pa-5': $vuetify.display.mdAndUp,
+            }"
+          >
             <br-form ref="form">
               <v-col cols="12">
                 <br-text
@@ -103,7 +117,7 @@ const loginOrRegister = async () => {
               </template>
             </v-col>
           </v-card-text>
-        </v-card>
+        </component>
       </v-col>
     </v-row>
   </v-container>
