@@ -39,7 +39,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/home",
-    name: "Home",
+    name: "home",
     component: () => import(/* webpackChunkName: "home" */ "@/views/Home.vue"),
   },
 ];

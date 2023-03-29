@@ -2,16 +2,25 @@
 import { ref } from "vue";
 import NavigationDrawer from "@/components/app/NavigationDrawer.vue";
 import { useUserStore } from "@/store/userStore";
+import { useRouter } from "vue-router";
+import cookieService from "@/services/cookieService";
 
-const { isUserSignedIn } = useUserStore();
+const userStore = useUserStore();
+const router = useRouter();
 
 const showDrawer = ref(true);
+
+const logOut = async () => {
+  userStore.clearState();
+  cookieService.removeCookie("br-session");
+  await router.push("/");
+};
 </script>
 
 <template>
   <v-app-bar app color="primary">
     <v-app-bar-nav-icon
-      v-if="isUserSignedIn"
+      v-if="userStore.isUserSignedIn"
       variant="text"
       @click.stop="showDrawer = !showDrawer"
     />
@@ -24,6 +33,10 @@ const showDrawer = ref(true);
         />
       </v-btn>
     </v-app-bar-title>
+    <template v-if="userStore.isUserSignedIn">
+      <v-spacer />
+      <br-btn @click="logOut">Log out</br-btn>
+    </template>
   </v-app-bar>
-  <navigation-drawer v-if="isUserSignedIn" v-model="showDrawer" />
+  <navigation-drawer v-if="userStore.isUserSignedIn" v-model="showDrawer" />
 </template>

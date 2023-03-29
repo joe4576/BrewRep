@@ -5,15 +5,16 @@ export type FormValidationStatus = {
   valid: boolean;
   errors: { id: string | number; errorMessages: string[] }[];
 };
-export interface CFormInterface {
+
+export interface BrFormInterface {
   validate(): Promise<FormValidationStatus>;
   reset(): void;
   resetValidation(): void;
 }
 
-const form = ref<CFormInterface>();
+const form = ref<BrFormInterface>();
 
-defineExpose<CFormInterface>({
+defineExpose<BrFormInterface>({
   validate: async () =>
     (await form.value?.validate()) ?? {
       valid: false,

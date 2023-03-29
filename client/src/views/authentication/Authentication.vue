@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { useUserStore } from "@/store/userStore";
-import { computed, onBeforeMount, ref } from "vue";
+import { computed, onBeforeMount, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import BrPassword from "@/components/input/specialised/BrPassword.vue";
 import BrForm from "@/components/input/BrForm.vue";
 import { useFormValidation } from "@/composables/useFormValidation";
 import { useValidationRules } from "@/composables/useValidationRules";
 import { VCard } from "vuetify/components";
+import clientAuthenticationService from "@/services/clientAuthenticationService";
+import cookieService from "@/services/cookieService";
 
 interface AuthenticationProps {
   login: boolean;
 }
 const props = defineProps<AuthenticationProps>();
 
-const { isUserSignedIn } = useUserStore();
+const userStore = useUserStore();
 const router = useRouter();
 const { form } = useFormValidation();
 const { required } = useValidationRules();
@@ -23,7 +25,7 @@ const password = ref("");
 
 onBeforeMount(async () => {
   // if there is a signed in user, redirect to home page
-  if (isUserSignedIn) {
+  if (userStore.isUserSignedIn) {
     return await router.push({
       name: "home",
     });
@@ -34,14 +36,77 @@ const title = computed(() =>
   props.login ? "Log in to BrewRep" : "Sign up to BrewRep"
 );
 
-const loginOrRegister = async () => {
-  const valid = await form.value?.validate();
+watch(
+  () => props.login,
+  () => {
+    // reset validation when switching between login/register
+    form.value?.resetValidation();
+  }
+);
 
-  if (!valid?.valid) {
-    return;
+/**
+ * Authenticates a user and then redirects them to the home page
+ *
+ * @param authType Type of authentication method to use.
+ *
+ * Note: Google doesn't differentiate between login and register:
+ * Firebase just supplies an id token, that we then pass to the
+ * backend for verification etc.
+ */
+const authenticate = async (authType: "login" | "register" | "google") => {
+  // validate form if email login or register
+  if (authType === "login" || authType === "register") {
+    const formValidationStatus = await form.value?.validate();
+
+    if (!formValidationStatus?.valid) {
+      return;
+    }
   }
 
-  // todo: register or login
+  let sessionToken: string;
+
+  try {
+    switch (authType) {
+      case "login":
+        sessionToken =
+          await clientAuthenticationService.loginWithEmailAndPassword(
+            emailAddress.value,
+            password.value
+          );
+        break;
+
+      case "register":
+        sessionToken =
+          await clientAuthenticationService.registerWithEmailAndPassword(
+            emailAddress.value,
+            password.value
+          );
+        break;
+
+      case "google":
+        sessionToken = await clientAuthenticationService.logInWithGoogle();
+        break;
+
+      default:
+        throw new Error("No authentication type given");
+    }
+  } catch (e) {
+    throw new Error("Authentication failed", {
+      cause: e,
+    });
+  }
+
+  // now we have a session token, set cookie, load user store and
+  // send user to home page
+  cookieService.setCookie("br-session", sessionToken);
+  await userStore.load();
+  await router.push({
+    name: "home",
+  });
+};
+
+const logInOrRegister = () => {
+  return props.login ? authenticate("login") : authenticate("register");
 };
 </script>
 
@@ -69,7 +134,7 @@ const loginOrRegister = async () => {
                 <h4 class="text-h4">{{ title }}</h4>
               </v-col>
             </v-row>
-            <br-form ref="form">
+            <br-form ref="form" @keydown.enter="logInOrRegister">
               <v-row>
                 <v-col cols="12">
                   <br-text
@@ -81,7 +146,11 @@ const loginOrRegister = async () => {
                 </v-col>
 
                 <v-col cols="12">
-                  <br-password v-model="password" label="Password" />
+                  <br-password
+                    v-model="password"
+                    label="Password"
+                    :rules="[required]"
+                  />
                 </v-col>
 
                 <v-col cols="12">
@@ -89,9 +158,10 @@ const loginOrRegister = async () => {
                     block
                     color="primary"
                     height="50px"
-                    @click="loginOrRegister"
-                    >{{ login ? "Log in" : "Sign Up" }}</br-btn
+                    @click="logInOrRegister"
                   >
+                    {{ login ? "Log in" : "Sign Up" }}
+                  </br-btn>
                 </v-col>
 
                 <v-col cols="12" class="mt-2">
@@ -99,7 +169,12 @@ const loginOrRegister = async () => {
                 </v-col>
 
                 <v-col cols="12">
-                  <br-btn variant="outlined" block height="50px">
+                  <br-btn
+                    variant="outlined"
+                    block
+                    height="50px"
+                    @click="authenticate('google')"
+                  >
                     Continue with Google
                     <template #prepend>
                       <img src="/src/assets/google.svg" alt="Google Icon" />

@@ -71,4 +71,31 @@ export const authenticationRouter = router({
         sessionToken,
       };
     }),
+
+  googleLogin: publicProcedure
+    .input(
+      z.object({
+        idToken: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { idToken } = input;
+      const authenticationService = new AuthenticationService(ctx.prisma);
+
+      let sessionToken: string;
+
+      try {
+        const result = await authenticationService.googleSignIn(idToken);
+        sessionToken = result.sessionToken;
+      } catch (e) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          cause: e,
+        });
+      }
+
+      return {
+        sessionToken,
+      };
+    }),
 });

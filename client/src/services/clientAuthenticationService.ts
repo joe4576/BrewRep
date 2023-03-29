@@ -4,8 +4,15 @@ import {
   createUserWithEmailAndPassword,
   UserCredential,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
 } from "firebase/auth";
 
+/**
+ * Service responsible for authenticating a client with Firebase,
+ * and then authenticating with the backend to return a valid
+ * session token.
+ */
 class ClientAuthenticationSerivce {
   /**
    * Registers with Firebase and then creates a new account
@@ -24,6 +31,8 @@ class ClientAuthenticationSerivce {
         email,
         password
       );
+      // firebase local state doesn't need to be persisted, so sign out of client
+      await getAuth().signOut();
     } catch {
       throw new Error(`User with email ${email} already exists`);
     }
@@ -65,6 +74,8 @@ class ClientAuthenticationSerivce {
         email,
         password
       );
+      // firebase local state doesn't need to be persisted, so sign out of client
+      await getAuth().signOut();
     } catch {
       throw new Error(`Incorrect email or password`);
     }
@@ -75,6 +86,42 @@ class ClientAuthenticationSerivce {
 
     try {
       const result = await client.authentication.login.mutate({
+        idToken,
+      });
+
+      sessionToken = result.sessionToken;
+    } catch (e) {
+      throw new Error("failed to regsiter with the server", {
+        cause: e,
+      });
+    }
+
+    return sessionToken;
+  }
+
+  /**
+   * Opens the 'sign in with Google' popup.
+   */
+  public async logInWithGoogle() {
+    let userCredential: UserCredential;
+
+    try {
+      userCredential = await signInWithPopup(
+        getAuth(),
+        new GoogleAuthProvider()
+      );
+      // firebase local state doesn't need to be persisted, so sign out of client
+      await getAuth().signOut();
+    } catch {
+      throw new Error(`Couldnt sign in with google`);
+    }
+
+    const idToken = await userCredential.user.getIdToken();
+
+    let sessionToken: string;
+
+    try {
+      const result = await client.authentication.googleLogin.mutate({
         idToken,
       });
 

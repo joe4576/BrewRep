@@ -1,5 +1,6 @@
 import { BaseService } from "./baseService";
 import { DecodedIdToken, getAuth } from "firebase-admin/auth";
+import { User } from ".prisma/client";
 
 export class AuthenticationService extends BaseService {
   /**
@@ -12,7 +13,8 @@ export class AuthenticationService extends BaseService {
     let uid: string;
 
     try {
-      uid = (await this.verifyFirebaseIdToken(idToken)).uid;
+      const result = await this.verifyFirebaseIdToken(idToken);
+      uid = result.uid;
     } catch {
       throw new Error("Failed to verify id token");
     }
@@ -56,6 +58,11 @@ export class AuthenticationService extends BaseService {
 
     return {
       uid: token.uid,
+      // this will never be undefined if signing in with
+      // Google, but can be if other auth providers are used.
+      // provide default value just in case
+      email: token.email ?? "no_email",
+      provider: token.firebase.sign_in_provider,
     };
   }
 
@@ -99,5 +106,53 @@ export class AuthenticationService extends BaseService {
     return {
       uid: decodedClaims.uid,
     };
+  }
+
+  /**
+   * Sign in with Google. This function verifies the id token, and then
+   * checks if the user exists in the DB. If it does, create a new session
+   * token and return.
+   *
+   * If a user doesn't exist, then create a new one in the DB, create
+   * a new session token and return.
+   *
+   * @param idToken Temporary id token from client Google popup
+   * @returns session token
+   */
+  public async googleSignIn(idToken: string) {
+    let uid, email: string;
+
+    try {
+      const result = await this.verifyFirebaseIdToken(idToken);
+      uid = result.uid;
+      email = result.email;
+    } catch {
+      throw new Error("Failed to verify id token");
+    }
+
+    // check if a user with uid exists
+    const foundUser = await this.prisma.user.findFirst({
+      where: {
+        uid: {
+          equals: uid,
+        },
+      },
+    });
+
+    // if it does, create a session token and return
+    if (foundUser) {
+      return await this.createSessionToken(idToken);
+    }
+
+    // if no user found, create one
+    await this.prisma.user.create({
+      data: {
+        name: email,
+        uid,
+      },
+    });
+
+    // create and return new session token
+    return await this.createSessionToken(idToken);
   }
 }

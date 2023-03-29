@@ -1,4 +1,4 @@
-import { CFormInterface } from "@/components/input/BrForm.vue";
+import { BrFormInterface } from "@/components/input/BrForm.vue";
 import { ref } from "vue";
 
 /**
@@ -7,7 +7,7 @@ import { ref } from "vue";
  * functions.
  */
 export function useFormValidation() {
-  const form = ref<CFormInterface>();
+  const form = ref<BrFormInterface>();
 
   return {
     form,
