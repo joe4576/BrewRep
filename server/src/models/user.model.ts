@@ -2,9 +2,9 @@ import { z } from "zod";
 import { uuidValidator } from "./validators/commonValidators";
 
 export const userValidator = z.object({
-  id: uuidValidator.optional(),
+  id: uuidValidator,
   name: z.string(),
-  isAdmin: z.boolean().optional(),
+  isAdmin: z.boolean().optional().default(false),
   uid: z.string(),
 });
 

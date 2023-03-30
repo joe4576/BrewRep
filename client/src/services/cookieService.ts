@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
 
-type CookieKey = "br-session";
+type CookieKey = "br-session" | "tenantgroupid" | "tenantid";
 
 class CookieService {
   public getCookie(key: CookieKey) {

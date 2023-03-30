@@ -6,10 +6,12 @@ import { authenticationRouter } from "./routers/authentication.router";
 import { userRouter } from "./routers/user.router";
 import { router } from "./trpc";
 import "./config/firebase";
+import { tenantRouter } from "./routers/tenant.router";
 
 export const appRouter = router({
   user: userRouter,
   authentication: authenticationRouter,
+  tenant: tenantRouter,
 });
 
 export type AppRouter = typeof appRouter;

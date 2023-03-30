@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import NavigationDrawer from "@/components/app/NavigationDrawer.vue";
 import { useUserStore } from "@/store/userStore";
 import { useRouter } from "vue-router";
@@ -8,11 +8,17 @@ import cookieService from "@/services/cookieService";
 const userStore = useUserStore();
 const router = useRouter();
 
-const showDrawer = ref(true);
+const drawIsOpen = ref(true);
+
+const drawIsAccessible = computed(
+  () => userStore.isUserSignedIn && userStore.isTenantSelected
+);
 
 const logOut = async () => {
   userStore.clearState();
   cookieService.removeCookie("br-session");
+  cookieService.removeCookie("tenantgroupid");
+  cookieService.removeCookie("tenantid");
   await router.push("/");
 };
 </script>
@@ -20,9 +26,9 @@ const logOut = async () => {
 <template>
   <v-app-bar app color="primary">
     <v-app-bar-nav-icon
-      v-if="userStore.isUserSignedIn"
+      v-if="drawIsAccessible"
       variant="text"
-      @click.stop="showDrawer = !showDrawer"
+      @click.stop="drawIsOpen = !drawIsOpen"
     />
     <v-app-bar-title>
       <v-btn variant="text" @click="$router.push('/home')" style="height: 100%">
@@ -38,5 +44,5 @@ const logOut = async () => {
       <br-btn @click="logOut">Log out</br-btn>
     </template>
   </v-app-bar>
-  <navigation-drawer v-if="userStore.isUserSignedIn" v-model="showDrawer" />
+  <navigation-drawer v-if="drawIsAccessible" v-model="drawIsOpen" />
 </template>

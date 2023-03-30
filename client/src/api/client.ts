@@ -11,6 +11,8 @@ export const client = createTRPCProxyClient<AppRouter>({
 
         return {
           Authorization: userStore.sessionToken ?? "",
+          tenantgroupid: userStore.tenantGroupId ?? "",
+          tenantid: userStore.tenantId ?? "",
         };
       },
     }),

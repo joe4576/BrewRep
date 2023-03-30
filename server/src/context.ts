@@ -3,6 +3,7 @@ import { inferAsyncReturnType, TRPCError } from "@trpc/server";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { User } from "./models/user.model";
 import { AuthenticationService } from "./services/authenticationService";
+import { TenantSerice } from "./services/tenantService";
 import { UserService } from "./services/userService";
 
 const prisma = new PrismaClient();
@@ -37,6 +38,7 @@ export const createContext = async ({
         sessionToken
       );
       const currentUser = await userService.getCurrentUser(uid);
+
       session = {
         user: currentUser,
       };
@@ -48,15 +50,29 @@ export const createContext = async ({
     }
   }
 
-  const tenantGroupId = req.headers.tenantgroupid;
-  const tenantId = req.headers.tenantid;
+  const tenantGroupId = req.headers.tenantgroupid as string;
+  const tenantId = req.headers.tenantid as string;
 
   if (session && tenantGroupId && tenantId) {
-    // TODO verify user belongs to tenant group, and
-    // that the given tenant id also belongs to the tenant group
+    const tenantService = new TenantSerice(prisma);
+
+    try {
+      await tenantService.verifyTenantGroupAndUser(
+        tenantGroupId,
+        tenantId,
+        session.user.id
+      );
+    } catch (e) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User is not authorised to access the tenant group",
+        cause: e,
+      });
+    }
+
     tenantInfo = {
-      tenantId: tenantId as string,
-      tenantGroupId: tenantGroupId as string,
+      tenantId,
+      tenantGroupId,
     };
   }
 
