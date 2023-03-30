@@ -8,9 +8,6 @@
     "dev": "tsnd --respawn --transpile-only src/server.ts",
     "start": "node dist/server.js"
   },
-  "prisma": {
-    "seed": "ts-node prisma/canned/seed.ts"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
