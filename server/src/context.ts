@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { inferAsyncReturnType } from "@trpc/server";
+import { inferAsyncReturnType, TRPCError } from "@trpc/server";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { User } from "./models/user.model";
 import { AuthenticationService } from "./services/authenticationService";
@@ -11,6 +11,11 @@ interface Session {
   user: User;
 }
 
+interface TenantInfo {
+  tenantGroupId: string;
+  tenantId: string;
+}
+
 /**
  * Create a context object for each procedure call
  */
@@ -19,6 +24,7 @@ export const createContext = async ({
   res,
 }: CreateExpressContextOptions) => {
   let session: Session | null = null;
+  let tenantInfo: TenantInfo | null = null;
 
   const sessionToken = req.headers.authorization;
 
@@ -35,14 +41,29 @@ export const createContext = async ({
         user: currentUser,
       };
     } catch (_) {
-      // silently fail - if any of the above rejects, then the session
-      // context will just remain null
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Failed to validate session token",
+      });
     }
+  }
+
+  const tenantGroupId = req.headers.tenantgroupid;
+  const tenantId = req.headers.tenantid;
+
+  if (session && tenantGroupId && tenantId) {
+    // TODO verify user belongs to tenant group, and
+    // that the given tenant id also belongs to the tenant group
+    tenantInfo = {
+      tenantId: tenantId as string,
+      tenantGroupId: tenantGroupId as string,
+    };
   }
 
   return {
     prisma,
     session,
+    tenantInfo,
   };
 };
 

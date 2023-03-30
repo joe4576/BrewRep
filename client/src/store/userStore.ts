@@ -37,6 +37,7 @@ export const useUserStore = defineStore("userStore", () => {
     try {
       state.user = await client.user.getCurrentUser.query();
     } catch (e) {
+      cookieService.removeCookie("br-session");
       throw new Error("Failed to get current user", {
         cause: e,
       });
