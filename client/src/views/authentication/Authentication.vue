@@ -101,7 +101,7 @@ const authenticate = async (authType: "login" | "register" | "google") => {
   cookieService.setCookie("br-session", sessionToken);
   await userStore.load();
   await router.push({
-    name: "home",
+    name: "company-settings",
   });
 };
 

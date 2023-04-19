@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUserStore } from "@/store/userStore";
 import { computed } from "vue";
 
 interface MenuItem {
@@ -16,6 +17,8 @@ const emit = defineEmits<{
   (e: "update:modelValue", v: boolean): void;
 }>();
 
+const userStore = useUserStore();
+
 const showDrawer = computed({
   get: () => props.modelValue,
   set: (val) => emit("update:modelValue", val),
@@ -32,8 +35,8 @@ const menuItems: MenuItem[] = [
     prependIcon: "mdi-cog",
     subMenuItems: [
       {
-        title: "Account",
-        to: "/settings/account",
+        title: "Company Settings",
+        to: "/settings/company",
       },
     ],
   },
@@ -41,7 +44,7 @@ const menuItems: MenuItem[] = [
 </script>
 
 <template>
-  <v-navigation-drawer v-model="showDrawer">
+  <v-navigation-drawer v-if="userStore.isTenantSelected" v-model="showDrawer">
     <v-list density="compact" nav>
       <template v-for="item in menuItems" :key="item.title">
         <!-- Menu item without submenu -->

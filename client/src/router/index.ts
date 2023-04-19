@@ -28,7 +28,7 @@ const routes: RouteRecordRaw[] = [
     name: "register",
     component: () =>
       import(
-        /* webpackChunkName: "home" */ "@/views/authentication/Authentication.vue"
+        /* webpackChunkName: "auth" */ "@/views/authentication/Authentication.vue"
       ),
     props: () => ({
       login: false,
@@ -38,9 +38,28 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/tenant",
+    name: "tenant-selector",
+    component: () =>
+      import(
+        /* webpackChunkName: "auth" */ "@/views/authentication/TenantSelector.vue"
+      ),
+    meta: {
+      noTenant: true,
+    },
+  },
+  {
     path: "/home",
     name: "home",
     component: () => import(/* webpackChunkName: "home" */ "@/views/Home.vue"),
+  },
+  {
+    path: "/settings/company",
+    name: "company-settings",
+    component: () =>
+      import(
+        /* webpackChunkName: "settings" */ "@/views/settings/CompanySettings.vue"
+      ),
   },
 ];
 
@@ -57,14 +76,29 @@ router.beforeEach((to, from, next) => {
     return next();
   }
 
-  // otherwise, only allow if user is signed in, or redirect
-  // to login page
-  if (userStore.isUserSignedIn) {
-    return next();
-  } else {
+  // if the user isn't signed in, redirect to login
+  if (!userStore.isUserSignedIn) {
     return next({
       name: "login",
     });
+  }
+
+  // if the user is logged in with a selected tenant, all good
+  if (userStore.isUserSignedIn && userStore.isTenantSelected) {
+    return next();
+  }
+
+  // if user is logged in without a selected tenant...
+  if (userStore.isUserSignedIn && !userStore.isTenantSelected) {
+    // if going to a no-tenant route, allow
+    if (to.meta?.noTenant) {
+      return next();
+    } else {
+      // otherwise redirect to tenant selection
+      return next({
+        name: "tenant-selector",
+      });
+    }
   }
 });
 

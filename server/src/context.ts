@@ -1,9 +1,11 @@
 import { PrismaClient } from "@prisma/client";
-import { inferAsyncReturnType } from "@trpc/server";
+import { TRPCError, inferAsyncReturnType } from "@trpc/server";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { User } from "./models/user.model";
 import { AuthenticationService } from "./services/authenticationService";
 import { UserService } from "./services/userService";
+import { Tenant } from "./models/tenant.model";
+import { TenantService } from "./services/tenantService";
 
 const prisma = new PrismaClient();
 
@@ -19,8 +21,10 @@ export const createContext = async ({
   res,
 }: CreateExpressContextOptions) => {
   let session: Session | null = null;
+  let tenant: Tenant | null = null;
 
-  const sessionToken = req.headers.authorization;
+  const sessionToken = req.headers.authorization as string;
+  const tenantId = req.headers.tenantid as string;
 
   if (sessionToken) {
     const authenticationService = new AuthenticationService(prisma);
@@ -35,14 +39,33 @@ export const createContext = async ({
         user: currentUser,
       };
     } catch (_) {
-      // silently fail - if any of the above rejects, then the session
-      // context will just remain null
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Failed to validate session token",
+      });
+    }
+  }
+
+  if (tenantId && session) {
+    const tenantService = new TenantService(prisma);
+    try {
+      // TODO make id requried
+      tenant = await tenantService.verifyTenantAndUser(
+        tenantId,
+        session.user.id!
+      );
+    } catch {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User is not authorised to access this tenant",
+      });
     }
   }
 
   return {
     prisma,
     session,
+    tenant,
   };
 };
 

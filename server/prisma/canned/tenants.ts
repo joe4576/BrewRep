@@ -1,32 +1,33 @@
 import { PrismaClient } from "@prisma/client";
+import { v4 as uuid } from "uuid";
 
 export default async function generateTenantData(prisma: PrismaClient) {
-  // temp admin credentials:
-  // admin@brewrep.com
-  // SecurePassword123
-
-  /**
-   * Creates a new admin user, 2 tenants, and a new tenant group
-   */
-  await prisma.tenantGroup.create({
+  const tenantId = uuid();
+  // create base tenant
+  await prisma.tenant.create({
     data: {
+      name: "Joe's Brewery",
+      id: tenantId,
       users: {
         create: {
-          name: "Admin",
-          uid: "sb6gnsxqBKgn0xgu6sV2SUcFAEw1",
+          name: "Joe",
+          uid: "I7NAdJZjoNTx93P9vp9GQHFzk1p1",
           isAdmin: true,
         },
       },
+    },
+  });
+
+  // create another user and add to tenant
+  // admin@brewrep.com
+  // SecurePassword123
+  await prisma.user.create({
+    data: {
+      name: "Chris",
+      uid: "sb6gnsxqBKgn0xgu6sV2SUcFAEw1",
       tenants: {
-        createMany: {
-          data: [
-            {
-              name: "Demo Data 1",
-            },
-            {
-              name: "Demo Data 2",
-            },
-          ],
+        connect: {
+          id: tenantId,
         },
       },
     },

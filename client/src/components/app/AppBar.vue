@@ -13,6 +13,7 @@ const showDrawer = ref(true);
 const logOut = async () => {
   userStore.clearState();
   cookieService.removeCookie("br-session");
+  cookieService.removeCookie("tenant-id");
   await router.push("/");
 };
 </script>
@@ -20,7 +21,7 @@ const logOut = async () => {
 <template>
   <v-app-bar app color="primary">
     <v-app-bar-nav-icon
-      v-if="userStore.isUserSignedIn"
+      v-if="userStore.isUserSignedIn && userStore.isTenantSelected"
       variant="text"
       @click.stop="showDrawer = !showDrawer"
     />
