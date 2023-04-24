@@ -7,11 +7,13 @@ import { userRouter } from "./routers/user.router";
 import { router } from "./trpc";
 import "./config/firebase";
 import { tenantRouter } from "./routers/tenant.router";
+import { taskRouter } from "./routers/task.router";
 
 export const appRouter = router({
   user: userRouter,
   authentication: authenticationRouter,
   tenant: tenantRouter,
+  task: taskRouter,
 });
 
 export type AppRouter = typeof appRouter;

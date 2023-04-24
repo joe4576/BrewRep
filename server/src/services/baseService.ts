@@ -7,3 +7,12 @@ export abstract class BaseService {
     this.prisma = prisma;
   }
 }
+
+export abstract class BaseServiceWithTenant extends BaseService {
+  protected tenantId: string;
+
+  constructor(prisma: PrismaClient, tenantId: string) {
+    super(prisma);
+    this.tenantId = tenantId;
+  }
+}

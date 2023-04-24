@@ -1,0 +1,82 @@
+import { router, tenantProcedure } from "../trpc";
+import { TRPCError } from "@trpc/server";
+import { Task, taskFilterValidator, taskValidator } from "../models/task.model";
+import { TaskService } from "../services/taskService";
+import { uuidValidator } from "../models/validators/commonValidators";
+
+export const taskRouter = router({
+  createTask: tenantProcedure
+    .input(taskValidator)
+    .mutation(async ({ input, ctx }) => {
+      const { prisma, tenant } = ctx;
+      const taskService = new TaskService(prisma, tenant.id!);
+
+      try {
+        await taskService.createTask(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to create task",
+        });
+      }
+    }),
+
+  getTask: tenantProcedure
+    .input(uuidValidator)
+    .query(async ({ input, ctx }) => {
+      const { prisma, tenant } = ctx;
+      const taskService = new TaskService(prisma, tenant.id!);
+
+      try {
+        return await taskService.getTask(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to get task",
+        });
+      }
+    }),
+
+  getTaskByFilter: tenantProcedure
+    .input(taskFilterValidator)
+    .query(async ({ input, ctx }) => {
+      const { prisma, tenant } = ctx;
+      const taskService = new TaskService(prisma, tenant.id!);
+
+      let tasks: Task[] = [];
+
+      try {
+        tasks = await taskService.getTasksByFilter(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to get tasks by filter",
+        });
+      }
+
+      return tasks;
+    }),
+
+  getAllTasks: tenantProcedure.query(async ({ ctx }) => {
+    const { prisma, tenant } = ctx;
+
+    const taskService = new TaskService(prisma, tenant.id!);
+
+    let tasks: Task[] = [];
+
+    try {
+      tasks = await taskService.getAllTasks();
+    } catch (e) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        cause: e,
+        message: "Failed to get all tasks",
+      });
+    }
+
+    return tasks;
+  }),
+});
