@@ -1,23 +1,8 @@
-import { PrismaClient } from "@prisma/client";
-
+/**
+ * Abstract class that passes a valid tenantId
+ * to each service's constructor
+ */
 export abstract class BaseService {
-  protected prisma: PrismaClient;
-
-  constructor(prisma: PrismaClient) {
-    this.prisma = prisma;
-  }
-}
-
-export abstract class BaseServiceWithTenant extends BaseService {
-  protected tenantId: string;
-
-  constructor(prisma: PrismaClient, tenantId: string) {
-    super(prisma);
-    this.tenantId = tenantId;
-  }
-}
-
-export abstract class TestService {
   protected tenantId: string;
 
   constructor(tenantId: string) {

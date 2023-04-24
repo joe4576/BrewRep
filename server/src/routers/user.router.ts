@@ -5,23 +5,21 @@ import { uuidValidator } from "../models/validators/commonValidators";
 import { TRPCError } from "@trpc/server";
 
 export const userRouter = router({
-  getUserById: publicProcedure
-    .input(uuidValidator)
-    .query(async ({ input, ctx }) => {
-      const userService = new UserService(ctx.prisma);
-      const user = await userService.getUserById(input);
+  getUserById: publicProcedure.input(uuidValidator).query(async ({ input }) => {
+    const userService = new UserService();
+    const user = await userService.getUserById(input);
 
-      return user;
-    }),
-  getAllUsers: publicProcedure.query(async ({ ctx }) => {
-    const userService = new UserService(ctx.prisma);
+    return user;
+  }),
+  getAllUsers: publicProcedure.query(async () => {
+    const userService = new UserService();
 
     return await userService.getAllUsers();
   }),
   getCurrentUser: protectedProcedure.query(async ({ ctx }) => {
-    const { prisma, session } = ctx;
+    const { session } = ctx;
 
-    const userService = new UserService(prisma);
+    const userService = new UserService();
 
     let currentUser: User | null;
 

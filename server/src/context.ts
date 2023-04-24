@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client";
 import { TRPCError, inferAsyncReturnType } from "@trpc/server";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { User } from "./models/user.model";
@@ -6,8 +5,6 @@ import { AuthenticationService } from "./services/authenticationService";
 import { UserService } from "./services/userService";
 import { Tenant } from "./models/tenant.model";
 import { TenantService } from "./services/tenantService";
-
-const prisma = new PrismaClient();
 
 interface Session {
   user: User;
@@ -27,8 +24,8 @@ export const createContext = async ({
   const tenantId = req.headers.tenantid as string;
 
   if (sessionToken) {
-    const authenticationService = new AuthenticationService(prisma);
-    const userService = new UserService(prisma);
+    const authenticationService = new AuthenticationService();
+    const userService = new UserService();
 
     try {
       const { uid } = await authenticationService.verifySessionToken(
@@ -47,7 +44,7 @@ export const createContext = async ({
   }
 
   if (tenantId && session) {
-    const tenantService = new TenantService(prisma);
+    const tenantService = new TenantService();
     try {
       // TODO make id requried
       tenant = await tenantService.verifyTenantAndUser(
@@ -63,7 +60,6 @@ export const createContext = async ({
   }
 
   return {
-    prisma,
     session,
     tenant,
   };

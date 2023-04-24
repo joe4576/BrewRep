@@ -8,7 +8,7 @@ export const tenantRouter = router({
   getAllTenants: protectedProcedure
     .input(uuidValidator)
     .query(async ({ ctx, input }) => {
-      const tenantService = new TenantService(ctx.prisma);
+      const tenantService = new TenantService();
 
       let tenants = [];
 

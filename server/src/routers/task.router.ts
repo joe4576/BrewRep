@@ -8,8 +8,8 @@ export const taskRouter = router({
   createTask: tenantProcedure
     .input(taskValidator)
     .mutation(async ({ input, ctx }) => {
-      const { prisma, tenant } = ctx;
-      const taskService = new TaskService(prisma, tenant.id!);
+      const { tenant } = ctx;
+      const taskService = new TaskService(tenant.id!);
 
       try {
         await taskService.createTask(input);
@@ -25,8 +25,8 @@ export const taskRouter = router({
   getTask: tenantProcedure
     .input(uuidValidator)
     .query(async ({ input, ctx }) => {
-      const { prisma, tenant } = ctx;
-      const taskService = new TaskService(prisma, tenant.id!);
+      const { tenant } = ctx;
+      const taskService = new TaskService(tenant.id!);
 
       try {
         return await taskService.getTask(input);
@@ -42,8 +42,8 @@ export const taskRouter = router({
   getTaskByFilter: tenantProcedure
     .input(taskFilterValidator)
     .query(async ({ input, ctx }) => {
-      const { prisma, tenant } = ctx;
-      const taskService = new TaskService(prisma, tenant.id!);
+      const { tenant } = ctx;
+      const taskService = new TaskService(tenant.id!);
 
       let tasks: Task[] = [];
 
@@ -61,9 +61,9 @@ export const taskRouter = router({
     }),
 
   getAllTasks: tenantProcedure.query(async ({ ctx }) => {
-    const { prisma, tenant } = ctx;
+    const { tenant } = ctx;
 
-    const taskService = new TaskService(prisma, tenant.id!);
+    const taskService = new TaskService(tenant.id!);
 
     let tasks: Task[] = [];
 

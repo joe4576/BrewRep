@@ -1,8 +1,8 @@
 import { type Task, type TaskFilter } from "../models/task.model";
-import { TestService } from "./baseService";
+import { BaseService } from "./baseService";
 import prisma from "../../prismaClient";
 
-export class TaskService extends TestService {
+export class TaskService extends BaseService {
   public async createTask(task: Task) {
     const foundTask = await prisma.task.findFirst({
       where: {

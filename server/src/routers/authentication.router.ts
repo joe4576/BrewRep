@@ -14,7 +14,7 @@ export const authenticationRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { name, idToken } = input;
 
-      const authenticationService = new AuthenticationService(ctx.prisma);
+      const authenticationService = new AuthenticationService();
 
       try {
         // register the user in the database
@@ -53,7 +53,7 @@ export const authenticationRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const { idToken } = input;
-      const authenticationService = new AuthenticationService(ctx.prisma);
+      const authenticationService = new AuthenticationService();
 
       let sessionToken: string;
 
@@ -80,7 +80,7 @@ export const authenticationRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const { idToken } = input;
-      const authenticationService = new AuthenticationService(ctx.prisma);
+      const authenticationService = new AuthenticationService();
 
       let sessionToken: string;
 

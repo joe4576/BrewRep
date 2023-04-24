@@ -1,8 +1,8 @@
-import { BaseService } from "./baseService";
+import prisma from "../../prismaClient";
 
-export class TenantService extends BaseService {
+export class TenantService {
   public async getAllTenants(userId: string) {
-    const allTenants = await this.prisma.tenant.findMany({
+    const allTenants = await prisma.tenant.findMany({
       where: {
         users: {
           some: {
@@ -32,7 +32,7 @@ export class TenantService extends BaseService {
    * @returns Tenant if valid
    */
   public async verifyTenantAndUser(tenantId: string, userId: string) {
-    const tenant = await this.prisma.tenant.findUnique({
+    const tenant = await prisma.tenant.findUnique({
       where: {
         id: tenantId,
       },
