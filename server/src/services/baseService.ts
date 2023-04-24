@@ -16,3 +16,11 @@ export abstract class BaseServiceWithTenant extends BaseService {
     this.tenantId = tenantId;
   }
 }
+
+export abstract class TestService {
+  protected tenantId: string;
+
+  constructor(tenantId: string) {
+    this.tenantId = tenantId;
+  }
+}

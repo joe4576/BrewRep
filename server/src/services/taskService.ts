@@ -1,9 +1,10 @@
-import { Task, TaskFilter } from "../models/task.model";
-import { BaseServiceWithTenant } from "./baseService";
+import { type Task, type TaskFilter } from "../models/task.model";
+import { TestService } from "./baseService";
+import prisma from "../../prismaClient";
 
-export class TaskService extends BaseServiceWithTenant {
+export class TaskService extends TestService {
   public async createTask(task: Task) {
-    const foundTask = await this.prisma.task.findFirst({
+    const foundTask = await prisma.task.findFirst({
       where: {
         id: task.id,
         AND: {
@@ -19,13 +20,15 @@ export class TaskService extends BaseServiceWithTenant {
     // override tenantId with verified id from middleware
     task.tenantId = this.tenantId;
 
-    await this.prisma.task.create({
+    await prisma.task.create({
       data: task,
     });
+
+    return task.id;
   }
 
   public async getTask(taskId: string) {
-    const task = await this.prisma.task.findFirst({
+    const task = await prisma.task.findFirst({
       where: {
         id: taskId,
         AND: {
@@ -44,7 +47,7 @@ export class TaskService extends BaseServiceWithTenant {
   public async getTasksByFilter(taskFilter: TaskFilter) {
     const { assignedToUserId, createdByUserId } = taskFilter;
 
-    const tasks = await this.prisma.task.findMany({
+    const tasks = await prisma.task.findMany({
       where: {
         tenantId: this.tenantId,
         AND: {
@@ -60,7 +63,7 @@ export class TaskService extends BaseServiceWithTenant {
   }
 
   public async getAllTasks() {
-    const tasks = await this.prisma.task.findMany({
+    const tasks = await prisma.task.findMany({
       where: {
         tenantId: this.tenantId,
       },
