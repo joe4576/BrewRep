@@ -35,4 +35,5 @@ model Task {
   dateCreated   DateTime    @default(now())
   dateDue       DateTime
   description   String      @default("")
+  completed     Boolean     @default(false)
 }

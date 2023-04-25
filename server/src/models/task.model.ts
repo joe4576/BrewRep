@@ -12,6 +12,7 @@ export const taskValidator = z.object({
   dateCreated: z.date(),
   dateDue: z.date(),
   description: z.string(),
+  completed: z.boolean(),
 });
 
 export const taskFilterValidator = z.object({

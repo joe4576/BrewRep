@@ -38,6 +38,7 @@ const openTaskEditDialog = (task?: Task) => {
     createdByUserId: userStore.user.id,
     description: "",
     tenantId: userStore.tenantId,
+    completed: false,
   };
 
   taskToEdit.value = task ?? newTask;
@@ -68,6 +69,9 @@ onMounted(refresh);
                       users.find((user) => user.id === task.createdByUserId)
                         ?.name ?? "User not found"
                     }}
+                    <v-icon v-if="task.completed" color="green">
+                      mdi-check
+                    </v-icon>
                   </v-list-item-title>
                   <v-list-item-subtitle>
                     {{ task.description }}

@@ -76,6 +76,9 @@ const [loadingDelete, deleteTask] = useLoadingState(async () => {
           label="Assign to user"
         />
       </v-col>
+      <v-col cols="12">
+        <br-checkbox v-model="internalTask.completed" label="Completed?" />
+      </v-col>
     </v-row>
     <template v-if="!isCreating" #additional-buttons>
       <br-btn
