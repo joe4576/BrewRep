@@ -1,50 +1,32 @@
 <script setup lang="ts">
 import { client } from "@/api/client";
-import {
-  BaseDialogEmits,
-  BaseDialogProps,
-} from "@/components/dialogs/BrDialog.vue";
-import useModelValue from "@/composables/useModelValue";
+import { BaseDialogProps } from "@/components/dialogs/BrDialog.vue";
+import useLoadingState from "@/composables/useLoadingState";
 import { useUserStore } from "@/store/userStore";
 import { Task } from "@server/models/task.model";
 import { User } from "@server/models/user.model";
 import { v4 as uuid } from "uuid";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 
 interface TaskEditDialogProps extends BaseDialogProps {
   taskId?: string;
 }
 
-interface TaskEditDialogEmits extends BaseDialogEmits {}
-
 const props = defineProps<TaskEditDialogProps>();
-const emit = defineEmits<TaskEditDialogEmits>();
 
-const { model } = useModelValue(() => props.modelValue, emit);
 const userStore = useUserStore();
 
 const internalTask = ref<Task | null>(null);
 const users = ref<User[]>([]);
 
-watch(
-  model,
-  async () => {
-    if (!model) {
-      return;
-    }
+const [loading, refresh] = useLoadingState(async () => {
+  if (!userStore.user?.id || !userStore.tenantId) {
+    return;
+  }
 
-    users.value = await client.user.getAllUsers.query();
-
-    if (props.taskId) {
-      internalTask.value = await client.task.getTask.query(props.taskId);
-      return;
-    }
-
-    // close the dialog if these values are falsy (should never be)
-    if (!userStore.user?.id || !userStore.tenantId) {
-      return (model.value = false);
-    }
-
+  if (props.taskId) {
+    internalTask.value = await client.task.getTask.query(props.taskId);
+  } else {
     internalTask.value = {
       id: uuid(),
       createdByUserId: userStore.user.id,
@@ -53,13 +35,18 @@ watch(
       description: "",
       tenantId: userStore.tenantId,
     };
-  },
-  { immediate: true }
-);
+  }
+
+  users.value = await client.user.getAllUsers.query();
+
+  await new Promise((res) => setTimeout(res, 1500));
+});
+
+onMounted(refresh);
 </script>
 
 <template>
-  <br-dialog v-model="model" @accept="$emit('accept', internalTask)">
+  <br-dialog @accept="$emit('accept', internalTask)">
     <v-row v-if="internalTask">
       <v-col cols="12" class="py-0">
         <br-text v-model="internalTask.description" label="Description" />
@@ -73,6 +60,7 @@ watch(
           :items="users"
           :item-title="(item: User) => item.name"
           :item-value="(item: User) => item.id"
+          :loading="loading"
           label="Assign to user"
         />
       </v-col>

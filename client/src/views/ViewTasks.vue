@@ -2,6 +2,7 @@
 import { client } from "@/api/client";
 import ButtonBar from "@/components/ButtonBar.vue";
 import TaskEditDialog from "@/components/tasks/TaskEditDialog.vue";
+import useLoadingState from "@/composables/useLoadingState";
 import { Task } from "@server/models/task.model";
 import { User } from "@server/models/user.model";
 import { onMounted, ref } from "vue";
@@ -11,12 +12,12 @@ const users = ref<User[]>([]);
 
 const showTaskEditDialog = ref(false);
 
-const refresh = async () => {
+const [loading, refresh] = useLoadingState(async () => {
   [tasks.value, users.value] = await Promise.all([
     client.task.getAllTasks.query(),
     client.user.getAllUsers.query(),
   ]);
-};
+});
 
 const addNewTask = async (task: Task) => {
   try {
@@ -42,7 +43,8 @@ onMounted(refresh);
             <h4 class="text-h4">View Tasks</h4>
           </v-col>
         </v-row>
-        <v-row>
+        <v-skeleton-loader v-if="loading" type="table-tbody" />
+        <v-row v-else>
           <v-col cols="12">
             <v-list>
               <template v-for="task in tasks" :key="task.id">
@@ -82,6 +84,7 @@ onMounted(refresh);
   </portal>
   <task-edit-dialog
     v-model="showTaskEditDialog"
+    v-if="showTaskEditDialog"
     label="Edit Task"
     @accept="addNewTask"
   />
