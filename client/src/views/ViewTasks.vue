@@ -6,12 +6,16 @@ import useLoadingState from "@/composables/useLoadingState";
 import { Task } from "@server/models/task.model";
 import { User } from "@server/models/user.model";
 import { onMounted, ref } from "vue";
+import { v4 as uuid } from "uuid";
+import { useUserStore } from "@/store/userStore";
 
 const tasks = ref<Task[]>([]);
 const users = ref<User[]>([]);
-const taskIdToEdit = ref<string | undefined>(undefined);
-
 const showTaskEditDialog = ref(false);
+const taskToEdit = ref<Task>();
+const isCreatingTask = ref(false);
+
+const userStore = useUserStore();
 
 const [loading, refresh] = useLoadingState(async () => {
   [tasks.value, users.value] = await Promise.all([
@@ -20,20 +24,25 @@ const [loading, refresh] = useLoadingState(async () => {
   ]);
 });
 
-const addOrSaveTask = async (event: { task: Task; isCreating: boolean }) => {
-  const { task, isCreating } = event;
-
-  try {
-    isCreating
-      ? await client.task.createTask.mutate(task)
-      : await client.task.saveTask.mutate(task);
-    taskIdToEdit.value = undefined;
-  } catch (_) {
-    // TODO - fix this mutation error (might be tRPC bug?)
+const openTaskEditDialog = (task?: Task) => {
+  if (!userStore.user?.id || !userStore.tenantId) {
+    return;
   }
 
-  showTaskEditDialog.value = false;
-  await refresh();
+  isCreatingTask.value = !task;
+
+  const newTask: Task = {
+    id: uuid(),
+    dateCreated: new Date(),
+    dateDue: new Date(),
+    createdByUserId: userStore.user.id,
+    description: "",
+    tenantId: userStore.tenantId,
+  };
+
+  taskToEdit.value = task ?? newTask;
+
+  showTaskEditDialog.value = true;
 };
 
 onMounted(refresh);
@@ -53,13 +62,7 @@ onMounted(refresh);
           <v-col cols="12">
             <v-list>
               <template v-for="task in tasks" :key="task.id">
-                <v-list-item
-                  link
-                  @click="
-                    taskIdToEdit = task.id;
-                    showTaskEditDialog = true;
-                  "
-                >
+                <v-list-item link @click="openTaskEditDialog(task)">
                   <v-list-item-title>
                     {{
                       users.find((user) => user.id === task.createdByUserId)
@@ -87,7 +90,7 @@ onMounted(refresh);
         <br-btn>cancel</br-btn>
       </template>
       <template #right>
-        <br-btn color="primary" @click="showTaskEditDialog = true">
+        <br-btn color="primary" @click="openTaskEditDialog()">
           Add Task
         </br-btn>
       </template>
@@ -95,8 +98,13 @@ onMounted(refresh);
   </portal>
   <task-edit-dialog
     v-model="showTaskEditDialog"
-    v-if="showTaskEditDialog"
-    :task-id="taskIdToEdit"
-    @accept="addOrSaveTask"
+    v-if="showTaskEditDialog && taskToEdit && users.length > 0"
+    :task="taskToEdit"
+    :users="users"
+    :is-creating="isCreatingTask"
+    @accept="
+      showTaskEditDialog = false;
+      refresh();
+    "
   />
 </template>

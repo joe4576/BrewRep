@@ -7,6 +7,7 @@ interface BrDialogProps {
   modelValue: boolean;
   label?: string;
   confirmText?: string;
+  loading?: boolean;
 }
 
 interface BrDialogEmits {
@@ -54,10 +55,20 @@ const closeDialog = (isActive: Ref<boolean>) => {
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <br-btn variant="text" color="red" @click="closeDialog(isActive)">
+        <br-btn
+          variant="text"
+          color="red"
+          :disabled="loading"
+          @click="closeDialog(isActive)"
+        >
           Cancel
         </br-btn>
-        <br-btn variant="text" color="primary" @click="$emit('accept')">
+        <br-btn
+          variant="text"
+          color="primary"
+          :disabled="loading"
+          @click="$emit('accept')"
+        >
           {{ confirmText }}
         </br-btn>
       </v-card-actions>

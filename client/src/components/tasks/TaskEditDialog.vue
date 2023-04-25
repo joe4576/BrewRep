@@ -1,70 +1,54 @@
 <script setup lang="ts">
 import { client } from "@/api/client";
 import useLoadingState from "@/composables/useLoadingState";
-import { useUserStore } from "@/store/userStore";
 import { Task } from "@server/models/task.model";
 import { User } from "@server/models/user.model";
-import { v4 as uuid } from "uuid";
+import cloneDeep from "lodash.clonedeep";
 import { computed, onMounted, ref } from "vue";
 
 interface TaskEditDialogProps {
-  taskId?: string;
+  task: Task;
+  users: User[];
+  isCreating?: boolean;
 }
 
 interface TaskEditDialogEmits {
-  (
-    e: "accept",
-    v: {
-      task: Task;
-      isCreating: boolean;
-    }
-  ): void;
+  (e: "accept", v: void): void;
 }
 
-const props = defineProps<TaskEditDialogProps>();
-defineEmits<TaskEditDialogEmits>();
+const props = withDefaults(defineProps<TaskEditDialogProps>(), {
+  isCreating: false,
+});
 
-const userStore = useUserStore();
+const emit = defineEmits<TaskEditDialogEmits>();
 
 const internalTask = ref<Task | null>(null);
-const users = ref<User[]>([]);
 
-const isCreating = computed(() => props.taskId === undefined);
+const isCreating = computed(() => props.isCreating);
 
-const [loading, refresh] = useLoadingState(async () => {
-  if (!userStore.user?.id || !userStore.tenantId) {
+onMounted(() => {
+  internalTask.value = cloneDeep(props.task);
+});
+
+const [loading, saveOrCreate] = useLoadingState(async () => {
+  if (!internalTask.value) {
     return;
   }
 
-  if (props.taskId) {
-    internalTask.value = await client.task.getTask.query(props.taskId);
-  } else {
-    internalTask.value = {
-      id: uuid(),
-      createdByUserId: userStore.user.id,
-      dateCreated: new Date(),
-      dateDue: new Date(),
-      description: "",
-      tenantId: userStore.tenantId,
-    };
-  }
+  props.isCreating
+    ? await client.task.createTask.mutate(internalTask.value)
+    : await client.task.saveTask.mutate(internalTask.value);
 
-  users.value = await client.user.getAllUsers.query();
+  emit("accept");
 });
-
-onMounted(refresh);
 </script>
 
 <template>
   <br-dialog
     :label="isCreating ? 'Add new task' : 'Edit Task'"
     :confirm-text="isCreating ? 'Add' : 'Edit'"
-    @accept="
-      $emit('accept', {
-        task: internalTask,
-        isCreating,
-      })
-    "
+    :loading="loading"
+    @accept="saveOrCreate"
   >
     <v-row v-if="internalTask">
       <v-col cols="12" class="py-0">
@@ -79,7 +63,6 @@ onMounted(refresh);
           :items="users"
           :item-title="(item: User) => item.name"
           :item-value="(item: User) => item.id"
-          :loading="loading"
           label="Assign to user"
         />
       </v-col>
