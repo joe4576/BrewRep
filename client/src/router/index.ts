@@ -54,6 +54,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import(/* webpackChunkName: "home" */ "@/views/Home.vue"),
   },
   {
+    path: "/tasks",
+    name: "tasks",
+    component: () =>
+      import(/* webpackChunkName: "tasks" */ "@/views/ViewTasks.vue"),
+  },
+  {
     path: "/settings/company",
     name: "company-settings",
     component: () =>

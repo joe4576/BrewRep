@@ -9,6 +9,7 @@ import { useValidationRules } from "@/composables/useValidationRules";
 import { VCard } from "vuetify/components";
 import clientAuthenticationService from "@/services/clientAuthenticationService";
 import cookieService from "@/services/cookieService";
+import useLoadingState from "@/composables/useLoadingState";
 
 interface AuthenticationProps {
   login: boolean;
@@ -53,57 +54,59 @@ watch(
  * Firebase just supplies an id token, that we then pass to the
  * backend for verification etc.
  */
-const authenticate = async (authType: "login" | "register" | "google") => {
-  // validate form if email login or register
-  if (authType === "login" || authType === "register") {
-    const formValidationStatus = await form.value?.validate();
+const [loading, authenticate] = useLoadingState(
+  async (authType: "login" | "register" | "google") => {
+    // validate form if email login or register
+    if (authType === "login" || authType === "register") {
+      const formValidationStatus = await form.value?.validate();
 
-    if (!formValidationStatus?.valid) {
-      return;
+      if (!formValidationStatus?.valid) {
+        return;
+      }
     }
-  }
 
-  let sessionToken: string;
+    let sessionToken: string;
 
-  try {
-    switch (authType) {
-      case "login":
-        sessionToken =
-          await clientAuthenticationService.loginWithEmailAndPassword(
-            emailAddress.value,
-            password.value
-          );
-        break;
+    try {
+      switch (authType) {
+        case "login":
+          sessionToken =
+            await clientAuthenticationService.loginWithEmailAndPassword(
+              emailAddress.value,
+              password.value
+            );
+          break;
 
-      case "register":
-        sessionToken =
-          await clientAuthenticationService.registerWithEmailAndPassword(
-            emailAddress.value,
-            password.value
-          );
-        break;
+        case "register":
+          sessionToken =
+            await clientAuthenticationService.registerWithEmailAndPassword(
+              emailAddress.value,
+              password.value
+            );
+          break;
 
-      case "google":
-        sessionToken = await clientAuthenticationService.logInWithGoogle();
-        break;
+        case "google":
+          sessionToken = await clientAuthenticationService.logInWithGoogle();
+          break;
 
-      default:
-        throw new Error("No authentication type given");
+        default:
+          throw new Error("No authentication type given");
+      }
+    } catch (e) {
+      throw new Error("Authentication failed", {
+        cause: e,
+      });
     }
-  } catch (e) {
-    throw new Error("Authentication failed", {
-      cause: e,
+
+    // now we have a session token, set cookie, load user store and
+    // send user to home page
+    cookieService.setCookie("br-session", sessionToken);
+    await userStore.load();
+    await router.push({
+      name: "company-settings",
     });
   }
-
-  // now we have a session token, set cookie, load user store and
-  // send user to home page
-  cookieService.setCookie("br-session", sessionToken);
-  await userStore.load();
-  await router.push({
-    name: "company-settings",
-  });
-};
+);
 
 const logInOrRegister = () => {
   return props.login ? authenticate("login") : authenticate("register");
@@ -158,6 +161,7 @@ const logInOrRegister = () => {
                     block
                     color="primary"
                     height="50px"
+                    :loading="loading"
                     @click="logInOrRegister"
                   >
                     {{ login ? "Log in" : "Sign Up" }}
@@ -173,6 +177,7 @@ const logInOrRegister = () => {
                     variant="outlined"
                     block
                     height="50px"
+                    :loading="loading"
                     @click="authenticate('google')"
                   >
                     Continue with Google

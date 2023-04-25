@@ -31,6 +31,11 @@ const menuItems: MenuItem[] = [
     to: "/home",
   },
   {
+    title: "Tasks",
+    prependIcon: "mdi-checkbox-multiple-marked-outline",
+    to: "/tasks",
+  },
+  {
     title: "Settings",
     prependIcon: "mdi-cog",
     subMenuItems: [

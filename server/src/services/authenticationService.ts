@@ -1,8 +1,7 @@
-import { BaseService } from "./baseService";
 import { DecodedIdToken, getAuth } from "firebase-admin/auth";
-import { User } from ".prisma/client";
+import prisma from "../../prismaClient";
 
-export class AuthenticationService extends BaseService {
+export class AuthenticationService {
   /**
    * Registers a new user
    *
@@ -19,7 +18,7 @@ export class AuthenticationService extends BaseService {
       throw new Error("Failed to verify id token");
     }
 
-    const existingUser = await this.prisma.user.findFirst({
+    const existingUser = await prisma.user.findFirst({
       where: {
         uid: {
           equals: uid,
@@ -31,7 +30,7 @@ export class AuthenticationService extends BaseService {
       throw new Error(`User with uid ${uid} already exists`);
     }
 
-    const newUser = await this.prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         name,
         uid,
@@ -131,7 +130,7 @@ export class AuthenticationService extends BaseService {
     }
 
     // check if a user with uid exists
-    const foundUser = await this.prisma.user.findFirst({
+    const foundUser = await prisma.user.findFirst({
       where: {
         uid: {
           equals: uid,
@@ -145,7 +144,7 @@ export class AuthenticationService extends BaseService {
     }
 
     // if no user found, create one
-    await this.prisma.user.create({
+    await prisma.user.create({
       data: {
         name: email,
         uid,
