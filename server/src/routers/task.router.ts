@@ -12,7 +12,7 @@ export const taskRouter = router({
       const taskService = new TaskService(tenant.id!);
 
       try {
-        await taskService.createTask(input);
+        return await taskService.createTask(input);
       } catch (e) {
         throw new TRPCError({
           code: "BAD_REQUEST",

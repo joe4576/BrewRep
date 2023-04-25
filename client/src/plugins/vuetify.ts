@@ -14,6 +14,7 @@ const light: ThemeDefinition = {
     primary: "#01579B",
     secondary: "#B3E5FC",
     background: "#FFFFFF",
+    grey: "#626262",
   },
 };
 
@@ -23,6 +24,7 @@ const dark: ThemeDefinition = {
     primary: "#29B6F6",
     secondary: "#01579B",
     background: "#2c2c2c",
+    grey: "#9d9d9d",
   },
 };
 

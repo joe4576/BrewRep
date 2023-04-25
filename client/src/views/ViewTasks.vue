@@ -1,20 +1,36 @@
 <script setup lang="ts">
 import { client } from "@/api/client";
-import { Task } from "@server/models/task.model";
-import { onMounted } from "vue";
-import { ref } from "vue";
 import ButtonBar from "@/components/ButtonBar.vue";
+import TaskEditDialog from "@/components/tasks/TaskEditDialog.vue";
+import { Task } from "@server/models/task.model";
 import { User } from "@server/models/user.model";
+import { onMounted, ref } from "vue";
 
 const tasks = ref<Task[]>([]);
 const users = ref<User[]>([]);
 
-onMounted(async () => {
+const showTaskEditDialog = ref(false);
+
+const refresh = async () => {
   [tasks.value, users.value] = await Promise.all([
     client.task.getAllTasks.query(),
     client.user.getAllUsers.query(),
   ]);
-});
+};
+
+const addNewTask = async (task: Task) => {
+  try {
+    let result = await client.task.createTask.mutate(task);
+    console.log(result);
+  } catch (_) {
+    // TODO - fix this mutation error (might be tRPC bug?)
+  }
+
+  showTaskEditDialog.value = false;
+  await refresh();
+};
+
+onMounted(refresh);
 </script>
 
 <template>
@@ -58,8 +74,15 @@ onMounted(async () => {
         <br-btn>cancel</br-btn>
       </template>
       <template #right>
-        <br-btn color="primary">Add Task</br-btn>
+        <br-btn color="primary" @click="showTaskEditDialog = true">
+          Add Task
+        </br-btn>
       </template>
     </button-bar>
   </portal>
+  <task-edit-dialog
+    v-model="showTaskEditDialog"
+    label="Edit Task"
+    @accept="addNewTask"
+  />
 </template>

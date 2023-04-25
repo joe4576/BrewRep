@@ -18,6 +18,7 @@
     "portal-vue": "^3.0.0",
     "roboto-fontface": "*",
     "superjson": "^1.12.2",
+    "uuid": "^9.0.0",
     "vue": "^3.2.38",
     "vue-router": "^4.0.0",
     "vuetify": "^3.0.0",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@types/js-cookie": "^3.0.3",
     "@types/node": "^18.11.9",
+    "@types/uuid": "^9.0.1",
     "@types/webfontloader": "^1.6.35",
     "@vitejs/plugin-vue": "^3.0.3",
     "@vue/eslint-config-typescript": "^11.0.0",

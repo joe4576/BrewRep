@@ -24,7 +24,7 @@ export class TaskService extends BaseService {
       data: task,
     });
 
-    return task.id;
+    return task;
   }
 
   public async getTask(taskId: string) {
