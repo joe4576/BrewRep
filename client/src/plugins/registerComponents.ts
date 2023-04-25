@@ -3,6 +3,7 @@ import BrBtn from "@/components/input/BrBtn.vue";
 import BrDropdown from "@/components/input/BrDropdown.vue";
 import BrText from "@/components/input/BrText.vue";
 import BrDate from "@/components/input/specialised/BrDate.vue";
+import { VSkeletonLoader } from "vuetify/labs/VSkeletonLoader";
 import { App } from "vue";
 
 /**
@@ -14,4 +15,5 @@ export function registerComponents(app: App) {
   app.component("BrDialog", BrDialog);
   app.component("BrDropdown", BrDropdown);
   app.component("BrDate", BrDate);
+  app.component("VSkeletonLoader", VSkeletonLoader);
 }
