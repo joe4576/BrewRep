@@ -52,7 +52,7 @@ onMounted(async () => {
       </v-col>
     </v-row>
   </v-container>
-  <teleport to="#app-footer">
+  <portal to="footer">
     <button-bar>
       <template #left>
         <br-btn>cancel</br-btn>
@@ -61,5 +61,5 @@ onMounted(async () => {
         <br-btn color="primary">Add Task</br-btn>
       </template>
     </button-bar>
-  </teleport>
+  </portal>
 </template>

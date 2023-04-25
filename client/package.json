@@ -15,6 +15,7 @@
     "firebase": "^9.18.0",
     "js-cookie": "^3.0.1",
     "pinia": "^2.0.23",
+    "portal-vue": "^3.0.0",
     "roboto-fontface": "*",
     "superjson": "^1.12.2",
     "vue": "^3.2.38",

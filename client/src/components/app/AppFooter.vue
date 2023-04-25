@@ -1,11 +1,19 @@
 <script setup lang="ts">
-// TODO use portal vue
+import { computed } from "vue";
+import { ref } from "vue";
+
+// wormhole hasContentFor is not in the Vue 3 version of PortalVue,
+// so use this hack to hide v-footer when there is no content
+const defaultSlotContent = ref();
+const showContent = computed(() => !defaultSlotContent.value);
 </script>
 
 <template>
-  <v-footer class="footer px-1" app>
+  <v-footer v-show="showContent" class="footer px-1" app>
     <div class="footer-container">
-      <div id="app-footer" />
+      <portal-target name="footer">
+        <div ref="defaultSlotContent" />
+      </portal-target>
     </div>
   </v-footer>
 </template>
