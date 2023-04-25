@@ -9,6 +9,7 @@ import { onMounted, ref } from "vue";
 
 const tasks = ref<Task[]>([]);
 const users = ref<User[]>([]);
+const taskIdToEdit = ref<string | undefined>(undefined);
 
 const showTaskEditDialog = ref(false);
 
@@ -19,10 +20,14 @@ const [loading, refresh] = useLoadingState(async () => {
   ]);
 });
 
-const addNewTask = async (task: Task) => {
+const addOrSaveTask = async (event: { task: Task; isCreating: boolean }) => {
+  const { task, isCreating } = event;
+
   try {
-    let result = await client.task.createTask.mutate(task);
-    console.log(result);
+    isCreating
+      ? await client.task.createTask.mutate(task)
+      : await client.task.saveTask.mutate(task);
+    taskIdToEdit.value = undefined;
   } catch (_) {
     // TODO - fix this mutation error (might be tRPC bug?)
   }
@@ -48,7 +53,13 @@ onMounted(refresh);
           <v-col cols="12">
             <v-list>
               <template v-for="task in tasks" :key="task.id">
-                <v-list-item link>
+                <v-list-item
+                  link
+                  @click="
+                    taskIdToEdit = task.id;
+                    showTaskEditDialog = true;
+                  "
+                >
                   <v-list-item-title>
                     {{
                       users.find((user) => user.id === task.createdByUserId)
@@ -85,7 +96,7 @@ onMounted(refresh);
   <task-edit-dialog
     v-model="showTaskEditDialog"
     v-if="showTaskEditDialog"
-    label="Edit Task"
-    @accept="addNewTask"
+    :task-id="taskIdToEdit"
+    @accept="addOrSaveTask"
   />
 </template>

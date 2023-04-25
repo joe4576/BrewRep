@@ -3,19 +3,23 @@ import useModelValue from "@/composables/useModelValue";
 import BrIconBtn from "@/components/input/BrIconBtn.vue";
 import { Ref } from "vue";
 
-export interface BaseDialogProps {
+interface BrDialogProps {
   modelValue: boolean;
-  label: string;
+  label?: string;
+  confirmText?: string;
 }
 
-export interface BaseDialogEmits {
+interface BrDialogEmits {
   (e: "update:modelValue", v: boolean): void;
   (e: "accept", v: any): void;
   (e: "cancel", v: void): void;
 }
 
-const props = defineProps<BaseDialogProps>();
-const emit = defineEmits<BaseDialogEmits>();
+const props = withDefaults(defineProps<BrDialogProps>(), {
+  confirmText: "Confirm",
+});
+
+const emit = defineEmits<BrDialogEmits>();
 
 const { model } = useModelValue(() => props.modelValue, emit);
 
@@ -54,7 +58,7 @@ const closeDialog = (isActive: Ref<boolean>) => {
           Cancel
         </br-btn>
         <br-btn variant="text" color="primary" @click="$emit('accept')">
-          Confirm
+          {{ confirmText }}
         </br-btn>
       </v-card-actions>
     </v-card>

@@ -1,23 +1,35 @@
 <script setup lang="ts">
 import { client } from "@/api/client";
-import { BaseDialogProps } from "@/components/dialogs/BrDialog.vue";
 import useLoadingState from "@/composables/useLoadingState";
 import { useUserStore } from "@/store/userStore";
 import { Task } from "@server/models/task.model";
 import { User } from "@server/models/user.model";
 import { v4 as uuid } from "uuid";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
-interface TaskEditDialogProps extends BaseDialogProps {
+interface TaskEditDialogProps {
   taskId?: string;
 }
 
+interface TaskEditDialogEmits {
+  (
+    e: "accept",
+    v: {
+      task: Task;
+      isCreating: boolean;
+    }
+  ): void;
+}
+
 const props = defineProps<TaskEditDialogProps>();
+defineEmits<TaskEditDialogEmits>();
 
 const userStore = useUserStore();
 
 const internalTask = ref<Task | null>(null);
 const users = ref<User[]>([]);
+
+const isCreating = computed(() => props.taskId === undefined);
 
 const [loading, refresh] = useLoadingState(async () => {
   if (!userStore.user?.id || !userStore.tenantId) {
@@ -38,15 +50,22 @@ const [loading, refresh] = useLoadingState(async () => {
   }
 
   users.value = await client.user.getAllUsers.query();
-
-  await new Promise((res) => setTimeout(res, 1500));
 });
 
 onMounted(refresh);
 </script>
 
 <template>
-  <br-dialog @accept="$emit('accept', internalTask)">
+  <br-dialog
+    :label="isCreating ? 'Add new task' : 'Edit Task'"
+    :confirm-text="isCreating ? 'Add' : 'Edit'"
+    @accept="
+      $emit('accept', {
+        task: internalTask,
+        isCreating,
+      })
+    "
+  >
     <v-row v-if="internalTask">
       <v-col cols="12" class="py-0">
         <br-text v-model="internalTask.description" label="Description" />

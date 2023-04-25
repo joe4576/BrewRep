@@ -79,4 +79,22 @@ export const taskRouter = router({
 
     return tasks;
   }),
+
+  saveTask: tenantProcedure
+    .input(taskValidator)
+    .mutation(async ({ input, ctx }) => {
+      const { tenant } = ctx;
+
+      const taskService = new TaskService(tenant.id!);
+
+      try {
+        return await taskService.saveTask(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to save task",
+        });
+      }
+    }),
 });

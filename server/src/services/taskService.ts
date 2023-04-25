@@ -1,9 +1,17 @@
-import { type Task, type TaskFilter } from "../models/task.model";
+import {
+  taskFilterValidator,
+  type Task,
+  type TaskFilter,
+} from "../models/task.model";
 import { BaseService } from "./baseService";
 import prisma from "../../prismaClient";
 
 export class TaskService extends BaseService {
   public async createTask(task: Task) {
+    if (task.tenantId !== this.tenantId) {
+      throw new Error("Tenant ids don't match");
+    }
+
     const foundTask = await prisma.task.findFirst({
       where: {
         id: task.id,
@@ -70,5 +78,20 @@ export class TaskService extends BaseService {
     });
 
     return tasks;
+  }
+
+  public async saveTask(task: Task) {
+    if (task.tenantId !== this.tenantId) {
+      throw new Error("Tenant ids don't match");
+    }
+
+    const updatedTask = await prisma.task.update({
+      where: {
+        id: task.id,
+      },
+      data: task,
+    });
+
+    return updatedTask;
   }
 }
