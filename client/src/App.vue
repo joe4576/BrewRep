@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppBar from "@/components/app/AppBar.vue";
+import AppFooter from "@/components/app/AppFooter.vue";
 import { computed } from "vue";
 import { useTheme } from "vuetify";
 
@@ -15,6 +16,7 @@ const primary = computed(() => current.value.colors.primary);
         <router-view />
       </v-container>
     </v-main>
+    <app-footer />
   </v-app>
 </template>
 
