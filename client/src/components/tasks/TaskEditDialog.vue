@@ -41,12 +41,22 @@ const [loading, saveOrCreate] = useLoadingState(async () => {
 
   emit("accept");
 });
+
+const [loadingDelete, deleteTask] = useLoadingState(async () => {
+  if (!internalTask.value) {
+    return;
+  }
+
+  await client.task.deleteTask.mutate(internalTask.value);
+
+  emit("accept");
+});
 </script>
 
 <template>
   <br-dialog
     :label="isCreating ? 'Add new task' : 'Edit Task'"
-    :confirm-text="isCreating ? 'Add' : 'Edit'"
+    :confirm-text="isCreating ? 'Add' : 'Save'"
     :loading="loading"
     @accept="saveOrCreate"
   >
@@ -67,5 +77,15 @@ const [loading, saveOrCreate] = useLoadingState(async () => {
         />
       </v-col>
     </v-row>
+    <template v-if="!isCreating" #additional-buttons>
+      <br-btn
+        variant="text"
+        color="red"
+        :loading="loadingDelete"
+        @click="deleteTask"
+      >
+        Delete
+      </br-btn>
+    </template>
   </br-dialog>
 </template>

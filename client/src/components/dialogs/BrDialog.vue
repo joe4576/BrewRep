@@ -63,6 +63,7 @@ const closeDialog = (isActive: Ref<boolean>) => {
         >
           Cancel
         </br-btn>
+        <slot name="additional-buttons" />
         <br-btn
           variant="text"
           color="primary"

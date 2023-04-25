@@ -94,4 +94,18 @@ export class TaskService extends BaseService {
 
     return updatedTask;
   }
+
+  public async deleteTask(task: Task) {
+    if (task.tenantId !== this.tenantId) {
+      throw new Error("Tenant ids don't match");
+    }
+
+    // TODO: add logic to check for user permissions
+
+    await prisma.task.delete({
+      where: {
+        id: task.id,
+      },
+    });
+  }
 }

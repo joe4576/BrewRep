@@ -98,7 +98,7 @@ onMounted(refresh);
   </portal>
   <task-edit-dialog
     v-model="showTaskEditDialog"
-    v-if="showTaskEditDialog && taskToEdit && users.length > 0"
+    v-if="showTaskEditDialog && taskToEdit"
     :task="taskToEdit"
     :users="users"
     :is-creating="isCreatingTask"
