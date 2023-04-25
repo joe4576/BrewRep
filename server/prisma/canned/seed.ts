@@ -5,7 +5,7 @@ import generateTaskData from "./tasks";
 const prisma = new PrismaClient();
 
 async function dropAllRows() {
-  await Promise.all([
+  await prisma.$transaction([
     prisma.user.deleteMany(),
     prisma.tenant.deleteMany(),
     prisma.task.deleteMany(),
