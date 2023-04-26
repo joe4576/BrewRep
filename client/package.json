@@ -9,9 +9,11 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@ag-grid-community/core": "^29.3.3",
     "@mdi/font": "7.0.96",
     "@trpc/client": "^10.14.1",
     "@trpc/server": "^10.14.1",
+    "ag-grid-vue3": "^29.3.3",
     "firebase": "^9.18.0",
     "js-cookie": "^3.0.1",
     "lodash.clonedeep": "^4.5.0",

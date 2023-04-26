@@ -8,6 +8,8 @@ import { User } from "@server/models/user.model";
 import { onMounted, ref } from "vue";
 import { v4 as uuid } from "uuid";
 import { useUserStore } from "@/store/userStore";
+import { GridConfigurationBuilder } from "@/components/grid/gridConfigurationBuilder";
+import BrGrid from "@/components/grid/BrGrid.vue";
 
 const tasks = ref<Task[]>([]);
 const users = ref<User[]>([]);
@@ -46,6 +48,26 @@ const openTaskEditDialog = (task?: Task) => {
   showTaskEditDialog.value = true;
 };
 
+const builder = new GridConfigurationBuilder<Task>();
+
+builder
+  .addTextColumn("Description", (item) => item.description)
+  .addTextColumn("Created by", (item) =>
+    item.createdByUserId
+      ? users.value.find((user) => user.id === item.createdByUserId)?.name ??
+        "-"
+      : "-"
+  )
+  .addTextColumn("Assigned to", (item) =>
+    item.assignedToUserId
+      ? users.value.find((user) => user.id === item.assignedToUserId)?.name ??
+        "-"
+      : "-"
+  )
+  .addBooleanColumn("Completed?", (item) => item.completed);
+
+const gridConfiguration = builder.build();
+
 onMounted(refresh);
 </script>
 
@@ -55,34 +77,17 @@ onMounted(refresh);
       <v-col cols="12">
         <v-row>
           <v-col cols="12">
-            <h4 class="text-h4">View Tasks</h4>
+            <h4 class="text-h4">Tasks</h4>
           </v-col>
         </v-row>
         <v-skeleton-loader v-if="loading" type="table-tbody" />
         <v-row v-else>
           <v-col cols="12">
-            <v-list>
-              <template v-for="task in tasks" :key="task.id">
-                <v-list-item link @click="openTaskEditDialog(task)">
-                  <v-list-item-title>
-                    {{
-                      users.find((user) => user.id === task.createdByUserId)
-                        ?.name ?? "User not found"
-                    }}
-                    <v-icon v-if="task.completed" color="green">
-                      mdi-check
-                    </v-icon>
-                  </v-list-item-title>
-                  <v-list-item-subtitle>
-                    {{ task.description }}
-                  </v-list-item-subtitle>
-                  <template #prepend>
-                    <v-icon>mdi-home</v-icon>
-                  </template>
-                </v-list-item>
-                <v-divider />
-              </template>
-            </v-list>
+            <br-grid
+              :grid-configuration="gridConfiguration"
+              :items="tasks"
+              @row-clicked="openTaskEditDialog"
+            />
           </v-col>
         </v-row>
       </v-col>
