@@ -1,8 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { uuidValidator } from "../models/validators/commonValidators";
-import { TenantService } from "../services/tenantService";
-import { protectedProcedure, router } from "../trpc";
 import { tenantValidator } from "../models/tenant.model";
+import { uuidValidator } from "../models/validators/commonValidators";
+import {
+  ProtectedTenantService,
+  TenantService,
+} from "../services/tenantService";
+import { protectedProcedure, router, tenantProcedure } from "../trpc";
 
 export const tenantRouter = router({
   getAllTenants: protectedProcedure
@@ -40,5 +43,37 @@ export const tenantRouter = router({
       }
 
       return input.id!;
+    }),
+
+  getTenant: tenantProcedure.input(uuidValidator).query(async ({ input }) => {
+    const tenantService = new TenantService();
+
+    let tenant;
+
+    try {
+      tenant = await tenantService.getTenant(input);
+    } catch (e) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        cause: e,
+      });
+    }
+
+    return tenant;
+  }),
+
+  saveTenant: tenantProcedure
+    .input(tenantValidator)
+    .mutation(async ({ input, ctx }) => {
+      const tenantService = new ProtectedTenantService(ctx.tenant.id!);
+
+      try {
+        await tenantService.saveTenant(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+        });
+      }
     }),
 });

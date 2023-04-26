@@ -1,10 +1,6 @@
-import {
-  taskFilterValidator,
-  type Task,
-  type TaskFilter,
-} from "../models/task.model";
-import { BaseService } from "./baseService";
 import prisma from "../../prismaClient";
+import { type Task, type TaskFilter } from "../models/task.model";
+import { BaseService } from "./baseService";
 
 export class TaskService extends BaseService {
   public async createTask(task: Task) {

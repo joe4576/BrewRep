@@ -9,7 +9,13 @@ import { ref } from "vue";
 export function useFormValidation() {
   const form = ref<BrFormInterface>();
 
+  const formIsValid = async () => {
+    const valid = await form.value?.validate();
+    return valid?.valid ?? false;
+  };
+
   return {
     form,
+    formIsValid,
   };
 }

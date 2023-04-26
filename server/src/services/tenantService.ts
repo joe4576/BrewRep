@@ -1,7 +1,25 @@
 import prisma from "../../prismaClient";
 import { Tenant } from "../models/tenant.model";
+import { BaseService } from "./baseService";
 
 export class TenantService {
+  public async getTenant(tenantId: string) {
+    const tenant = await prisma.tenant.findUnique({
+      where: {
+        id: tenantId,
+      },
+      include: {
+        users: true,
+      },
+    });
+
+    if (!tenant) {
+      throw new Error("Tenant not found");
+    }
+
+    return tenant;
+  }
+
   public async getAllTenants(userId: string) {
     const allTenants = await prisma.tenant.findMany({
       where: {
@@ -79,5 +97,22 @@ export class TenantService {
     });
 
     return newTenant;
+  }
+}
+
+export class ProtectedTenantService extends BaseService {
+  public async saveTenant(tenant: Tenant) {
+    if (tenant.id !== this.tenantId) {
+      throw new Error("Tenant ids don't match");
+    }
+
+    const updatedTenant = await prisma.tenant.update({
+      where: {
+        id: tenant.id,
+      },
+      data: tenant,
+    });
+
+    return updatedTenant;
   }
 }
