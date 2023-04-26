@@ -1,37 +1,35 @@
-import { protectedProcedure, publicProcedure, router } from "../trpc";
-import { User } from "../models/user.model";
-import { UserService } from "../services/userService";
-import { uuidValidator } from "../models/validators/commonValidators";
 import { TRPCError } from "@trpc/server";
+import { userValidator } from "../models/user.model";
+import { UserService } from "../services/userService";
+import { protectedProcedure, router, tenantProcedure } from "../trpc";
 
 export const userRouter = router({
-  getUserById: publicProcedure.input(uuidValidator).query(async ({ input }) => {
-    const userService = new UserService();
-    const user = await userService.getUserById(input);
-
-    return user;
-  }),
-  getAllUsers: publicProcedure.query(async () => {
-    const userService = new UserService();
+  getAllUsers: tenantProcedure.query(async ({ ctx }) => {
+    const { tenant } = ctx;
+    const userService = new UserService(tenant.id!);
 
     return await userService.getAllUsers();
   }),
+
   getCurrentUser: protectedProcedure.query(async ({ ctx }) => {
     const { session } = ctx;
-
-    const userService = new UserService();
-
-    let currentUser: User | null;
-
-    try {
-      currentUser = await userService.getCurrentUser(session.user.uid);
-    } catch (e) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        cause: e,
-      });
-    }
-
-    return currentUser;
+    return session.user;
   }),
+
+  saveUser: tenantProcedure
+    .input(userValidator)
+    .mutation(async ({ input, ctx }) => {
+      const { tenant } = ctx;
+      const userService = new UserService(tenant.id!);
+
+      try {
+        await userService.saveUser(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to save user",
+        });
+      }
+    }),
 });

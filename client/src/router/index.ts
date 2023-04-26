@@ -78,6 +78,14 @@ const routes: RouteRecordRaw[] = [
         /* webpackChunkName: "settings" */ "@/views/settings/CompanySettings.vue"
       ),
   },
+  {
+    path: "/settings/user",
+    name: "user-settings",
+    component: () =>
+      import(
+        /* webpackChunkName: "settings" */ "@/views/settings/UserSettings.vue"
+      ),
+  },
 ];
 
 const router = createRouter({

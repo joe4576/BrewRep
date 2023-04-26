@@ -2,7 +2,7 @@ import { TRPCError, inferAsyncReturnType } from "@trpc/server";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { User } from "./models/user.model";
 import { AuthenticationService } from "./services/authenticationService";
-import { UserService } from "./services/userService";
+import { PublicUserService, UserService } from "./services/userService";
 import { Tenant } from "./models/tenant.model";
 import { TenantService } from "./services/tenantService";
 
@@ -25,13 +25,13 @@ export const createContext = async ({
 
   if (sessionToken) {
     const authenticationService = new AuthenticationService();
-    const userService = new UserService();
+    const userService = new PublicUserService();
 
     try {
       const { uid } = await authenticationService.verifySessionToken(
         sessionToken
       );
-      const currentUser = await userService.getCurrentUser(uid);
+      const currentUser = await userService.getUserByUid(uid);
       session = {
         user: currentUser,
       };

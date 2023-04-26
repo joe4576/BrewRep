@@ -6,33 +6,27 @@ import { useFormValidation } from "@/composables/useFormValidation";
 import useLoadingState from "@/composables/useLoadingState";
 import { useValidationRules } from "@/composables/useValidationRules";
 import { useUserStore } from "@/store/userStore";
-import { Tenant } from "@server/models/tenant.model";
 import { User } from "@server/models/user.model";
 import { onMounted, ref } from "vue";
-
-type TenantAndUser = Tenant & {
-  users: User[];
-};
 
 const userStore = useUserStore();
 const { form, formIsValid } = useFormValidation();
 const { required } = useValidationRules();
 
-const tenant = ref<TenantAndUser>();
-const tenantName = ref("");
+const user = ref<User>();
+const userName = ref("");
 const showUpdatedSnackbar = ref(false);
 
-const { isDirty, resetDirtyState } = useDirtyState(tenantName);
+const { isDirty, resetDirtyState } = useDirtyState(userName);
 
-const [loading, updateTenant] = useLoadingState(async () => {
-  if (!(await formIsValid()) || !tenant.value) {
+const [loading, updateUser] = useLoadingState(async () => {
+  if (!(await formIsValid()) || !user.value) {
     return;
   }
 
-  await client.tenant.saveTenant.mutate({
-    id: tenant.value.id!,
-    dateCreated: tenant.value.dateCreated,
-    name: tenantName.value,
+  await client.user.saveUser.mutate({
+    ...user.value,
+    name: userName.value,
   });
 
   showUpdatedSnackbar.value = true;
@@ -44,9 +38,9 @@ const [loadingPrerequisites, loadPrerequisites] = useLoadingState(async () => {
     return;
   }
 
-  tenant.value = await client.tenant.getTenant.query(userStore.tenantId);
+  user.value = await client.user.getCurrentUser.query();
 
-  tenantName.value = tenant.value.name;
+  userName.value = user.value.name;
   resetDirtyState();
 });
 
@@ -57,18 +51,18 @@ onMounted(loadPrerequisites);
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <h4 class="text-h4">Company Settings</h4>
+        <h4 class="text-h4">User Settings</h4>
       </v-col>
     </v-row>
     <v-row>
       <v-col cols="12" sm="6">
         <v-card>
-          <v-card-title>Tenant Details</v-card-title>
+          <v-card-title>User Details</v-card-title>
           <v-card-text>
-            <br-form ref="form" @submit.prevent="updateTenant">
+            <br-form ref="form" @submit.prevent="updateUser">
               <br-text
-                v-model="tenantName"
-                label="Name"
+                v-model="userName"
+                label="Username"
                 :loading="loadingPrerequisites"
                 :rules="[required]"
               />
@@ -81,7 +75,7 @@ onMounted(loadPrerequisites);
               color="primary"
               :loading="loading"
               :disabled="!isDirty"
-              @click="updateTenant"
+              @click="updateUser"
             >
               Update
             </br-btn>
@@ -91,6 +85,6 @@ onMounted(loadPrerequisites);
     </v-row>
   </v-container>
   <v-snackbar v-model="showUpdatedSnackbar" :timeout="2000">
-    Tenant updated successfully! ✅
+    User updated successfully! ✅
   </v-snackbar>
 </template>

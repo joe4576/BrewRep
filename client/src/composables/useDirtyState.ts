@@ -12,14 +12,15 @@ function useDirtyState(...items: Ref<any>[]) {
 
   watch(
     items,
-    (newValue) => {
-      isDirty.value = !isEqual(newValue, originalItemValues);
+    (newItems) => {
+      isDirty.value = !isEqual(newItems, originalItemValues);
     },
     { deep: true }
   );
 
   const resetDirtyState = () => {
     originalItemValues = cloneDeep(items.map((item) => item.value));
+    isDirty.value = false;
   };
 
   return {

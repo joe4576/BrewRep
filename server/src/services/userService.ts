@@ -1,23 +1,27 @@
-import { User } from "../models/user.model";
 import prisma from "../../prismaClient";
+import { User } from "../models/user.model";
+import { BaseService } from "./baseService";
 
-export class UserService {
-  public async getUserById(id: string): Promise<User | null> {
-    const user: User | null = await prisma.user.findFirst({
-      where: {
-        id,
-      },
-    });
-
-    return user;
-  }
-
+export class UserService extends BaseService {
   public async getAllUsers(): Promise<User[]> {
     const allUsers: User[] = await prisma.user.findMany();
     return allUsers;
   }
 
-  public async getCurrentUser(uid: string): Promise<User> {
+  public async saveUser(user: User) {
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: user,
+    });
+
+    return updatedUser;
+  }
+}
+
+export class PublicUserService {
+  public async getUserByUid(uid: string): Promise<User> {
     const user = await prisma.user.findFirst({
       where: {
         uid,

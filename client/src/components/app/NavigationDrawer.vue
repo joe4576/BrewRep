@@ -43,6 +43,10 @@ const menuItems: MenuItem[] = [
         title: "Company Settings",
         to: "/settings/company",
       },
+      {
+        title: "User Settings",
+        to: "/settings/user",
+      },
     ],
   },
 ];
