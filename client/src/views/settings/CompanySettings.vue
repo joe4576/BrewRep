@@ -13,6 +13,7 @@ import { useUserStore } from "@/store/userStore";
 import { Tenant } from "@server/models/tenant.model";
 import { User } from "@server/models/user.model";
 import { computed, onMounted, ref } from "vue";
+import AddUserDialog from "@/components/settings/AddUserDialog.vue";
 
 type TenantAndUser = Tenant & {
   users: User[];
@@ -25,8 +26,12 @@ const { required } = useValidationRules();
 const tenant = ref<TenantAndUser>();
 const tenantName = ref("");
 const showUpdatedSnackbar = ref(false);
+const showAddedUserSnackbar = ref(false);
+const showFailedToAddUserSnackbar = ref(false);
 const showConfirmationDialog = ref(false);
+const showAddUserDialog = ref(false);
 const selectedUser = ref<User>();
+const addedUserName = ref("");
 
 const users = computed(() => tenant.value?.users ?? []);
 
@@ -72,6 +77,18 @@ const removeUserFromCompany = async () => {
   await client.user.removeUserFromCurrentTenant.mutate(selectedUser.value.id);
   showConfirmationDialog.value = false;
   await loadTenantSettings();
+};
+
+const addUserToCompany = async (userId: string) => {
+  try {
+    const user = await client.user.addUserToCurrentTenant.mutate(userId);
+    showAddUserDialog.value = false;
+    addedUserName.value = user.name;
+    showAddedUserSnackbar.value = true;
+    await loadTenantSettings();
+  } catch {
+    showFailedToAddUserSnackbar.value = true;
+  }
 };
 
 const usersGridConfiguration = new GridConfigurationBuilder<User>()
@@ -151,7 +168,9 @@ onMounted(loadTenantSettings);
   <portal to="footer">
     <button-bar>
       <template #right>
-        <br-btn color="primary">Add user</br-btn>
+        <br-btn color="primary" @click="showAddUserDialog = true">
+          Add user
+        </br-btn>
       </template>
     </button-bar>
   </portal>
@@ -164,7 +183,21 @@ onMounted(loadTenantSettings);
     Are you sure you want to remove {{ selectedUser.name }} from the company?
   </br-confirmation-dialog>
 
+  <add-user-dialog
+    v-if="showAddUserDialog"
+    v-model="showAddUserDialog"
+    @accept="addUserToCompany"
+  />
+
   <v-snackbar v-model="showUpdatedSnackbar" :timeout="2000">
     Tenant updated successfully! ✅
+  </v-snackbar>
+
+  <v-snackbar v-model="showAddedUserSnackbar" color="success" :timeout="3000">
+    Added {{ addedUserName }} to the company!
+  </v-snackbar>
+
+  <v-snackbar v-model="showFailedToAddUserSnackbar" color="red" :timeout="3000">
+    Incorrect ID
   </v-snackbar>
 </template>

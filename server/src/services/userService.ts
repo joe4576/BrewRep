@@ -35,6 +35,23 @@ export class UserService extends BaseService {
 
     return user;
   }
+
+  public async addUserToCurrentTenant(userId: string) {
+    const user = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        tenants: {
+          connect: {
+            id: this.tenantId,
+          },
+        },
+      },
+    });
+
+    return user;
+  }
 }
 
 export class PublicUserService {

@@ -50,4 +50,21 @@ export const userRouter = router({
         });
       }
     }),
+
+  addUserToCurrentTenant: tenantProcedure
+    .input(uuidValidator)
+    .mutation(async ({ input, ctx }) => {
+      const { tenant } = ctx;
+      const userService = new UserService(tenant.id!);
+
+      try {
+        return await userService.addUserToCurrentTenant(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "User not added to the tenant",
+        });
+      }
+    }),
 });
