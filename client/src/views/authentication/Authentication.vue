@@ -23,6 +23,7 @@ const { required } = useValidationRules();
 
 const emailAddress = ref("");
 const password = ref("");
+const errorMessage = ref<string | null>(null);
 
 onBeforeMount(async () => {
   // if there is a signed in user, redirect to home page
@@ -92,11 +93,14 @@ const [loading, authenticate] = useLoadingState(
         default:
           throw new Error("No authentication type given");
       }
-    } catch (e) {
+    } catch (e: any) {
+      errorMessage.value = e.message ?? "Authentication failed";
       throw new Error("Authentication failed", {
         cause: e,
       });
     }
+
+    errorMessage.value = null;
 
     // now we have a session token, set cookie, load user store and
     // send user to home page
@@ -154,6 +158,10 @@ const logInOrRegister = () => {
                     label="Password"
                     :rules="[required]"
                   />
+                </v-col>
+
+                <v-col v-if="errorMessage" cols="12">
+                  <p class="text-red">{{ errorMessage }}</p>
                 </v-col>
 
                 <v-col cols="12">
