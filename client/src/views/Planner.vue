@@ -31,10 +31,9 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
 </script>
 
 <template>
-  <v-container fluid style="height: calc(100vh - 100px)">
+  <v-container fluid class="pa-0" style="height: calc(100vh - 100px)">
     <br-calendar
       :events="events"
-      events-on-month-view
       :snap-to-time="15"
       @event-click="onEventClick"
       @event-drop="onEventDrop"

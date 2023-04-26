@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import VueCal, { type Event as CalEvent, Props } from "vue-cal";
+import VueCal, { Props, type Event as CalEvent } from "vue-cal";
 import "vue-cal/dist/vuecal.css";
 
 export interface EventDrop<T extends CalEvent> {
@@ -24,12 +24,10 @@ interface CalendarEmits<T extends CalEvent> {
     eventDurationChange: EventDurationChange<T>
   ): void;
 }
-
-const emit = defineEmits<CalendarEmits<any>>();
-
 interface CalendarProps extends Props {}
 
 defineProps<CalendarProps>();
+const emit = defineEmits<CalendarEmits<any>>();
 
 // for some reason, this doesn't follow the same pattern as other events
 const bubbleEventClick = (calEvent: CalEvent, nativeEvent: Event) => {
@@ -45,12 +43,21 @@ const bubbleEventDurationChange = <T extends CalEvent>(
 ) => {
   emit("event-duration-change", eventDurationChange);
 };
+
+const scrollToCurrentTime = () => {
+  const calendar = document.querySelector("#vuecal .vuecal__bg");
+  const timeWindowHeightPx = 50;
+  const now = new Date();
+  const hours = now.getHours() + now.getMinutes() / 60;
+  calendar?.scrollTo({ top: hours * timeWindowHeightPx, behavior: "smooth" });
+};
 </script>
 
 <template>
   <vue-cal
     v-bind="$attrs"
-    :disable-views="['years']"
+    id="vuecal"
+    :disable-views="['years', 'year']"
     :time-step="30"
     today-button
     :editable-events="{
@@ -61,8 +68,10 @@ const bubbleEventDurationChange = <T extends CalEvent>(
       create: false,
     }"
     :on-event-click="bubbleEventClick"
+    events-on-month-view="short"
     @event-drop="bubbleEventDrop"
     @event-duration-change="bubbleEventDurationChange"
+    @ready="scrollToCurrentTime"
   >
     <template #today-button>
       <v-tooltip location="top">
@@ -103,5 +112,9 @@ const bubbleEventDurationChange = <T extends CalEvent>(
 
 .vuecal__event:hover {
   cursor: pointer;
+}
+
+.vuecal__now-line {
+  color: #06c;
 }
 </style>
