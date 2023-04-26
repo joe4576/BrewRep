@@ -31,6 +31,11 @@ const menuItems: MenuItem[] = [
     to: "/home",
   },
   {
+    title: "Planner",
+    prependIcon: "mdi-calendar-account-outline",
+    to: "/planner",
+  },
+  {
     title: "Tasks",
     prependIcon: "mdi-checkbox-multiple-marked-outline",
     to: "/tasks",
