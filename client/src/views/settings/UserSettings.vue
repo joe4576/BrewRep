@@ -15,7 +15,9 @@ const { required } = useValidationRules();
 
 const user = ref<User>();
 const userName = ref("");
+const userId = ref("");
 const showUpdatedSnackbar = ref(false);
+const showCopiedToClipboardSnackbar = ref(false);
 
 const { isDirty, resetDirtyState } = useDirtyState(userName);
 
@@ -39,10 +41,24 @@ const [loadingPrerequisites, loadPrerequisites] = useLoadingState(async () => {
   }
 
   user.value = await client.user.getCurrentUser.query();
+  userId.value = user.value.id!;
 
   userName.value = user.value.name;
   resetDirtyState();
 });
+
+const copyToClipboard = async () => {
+  if (!userId.value) {
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(userId.value);
+    showCopiedToClipboardSnackbar.value = true;
+  } catch {
+    console.error("Failed to write to clipboard");
+  }
+};
 
 onMounted(loadPrerequisites);
 </script>
@@ -56,16 +72,29 @@ onMounted(loadPrerequisites);
     </v-row>
     <v-row>
       <v-col cols="12" sm="6">
-        <v-card>
+        <v-card :loading="loadingPrerequisites">
           <v-card-title>User Details</v-card-title>
           <v-card-text>
             <br-form ref="form" @submit.prevent="updateUser">
               <br-text
                 v-model="userName"
                 label="Username"
-                :loading="loadingPrerequisites"
                 :rules="[required]"
+                @keydown.enter="updateUser"
               />
+              <br-text v-model="userId" label="ID" readonly>
+                <template #append>
+                  <v-tooltip location="top" text="Copy">
+                    <template #activator="{ props }">
+                      <v-icon
+                        v-bind="props"
+                        icon="mdi-content-copy"
+                        @click="copyToClipboard"
+                      />
+                    </template>
+                  </v-tooltip>
+                </template>
+              </br-text>
             </br-form>
           </v-card-text>
           <v-card-actions>
@@ -86,5 +115,8 @@ onMounted(loadPrerequisites);
   </v-container>
   <v-snackbar v-model="showUpdatedSnackbar" :timeout="2000">
     User updated successfully! ✅
+  </v-snackbar>
+  <v-snackbar v-model="showCopiedToClipboardSnackbar" :timeout="2000">
+    User ID copied to clipboard
   </v-snackbar>
 </template>

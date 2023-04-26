@@ -62,16 +62,11 @@ onMounted(loadPrerequisites);
     </v-row>
     <v-row>
       <v-col cols="12" sm="6">
-        <v-card>
+        <v-card :loading="loadingPrerequisites">
           <v-card-title>Tenant Details</v-card-title>
           <v-card-text>
             <br-form ref="form" @submit.prevent="updateTenant">
-              <br-text
-                v-model="tenantName"
-                label="Name"
-                :loading="loadingPrerequisites"
-                :rules="[required]"
-              />
+              <br-text v-model="tenantName" label="Name" :rules="[required]" />
             </br-form>
           </v-card-text>
           <v-card-actions>

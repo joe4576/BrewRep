@@ -22,5 +22,9 @@ const internalValue = computed({
     variant="underlined"
     color="primary"
     @click:append-inner="$emit('click:appendInner')"
-  />
+  >
+    <template #append>
+      <slot name="append" />
+    </template>
+  </v-text-field>
 </template>
