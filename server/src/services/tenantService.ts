@@ -1,4 +1,5 @@
 import prisma from "../../prismaClient";
+import { Tenant } from "../models/tenant.model";
 
 export class TenantService {
   public async getAllTenants(userId: string) {
@@ -53,5 +54,30 @@ export class TenantService {
     }
 
     return tenant;
+  }
+
+  public async createTenant(tenant: Tenant, ownerId: string) {
+    const existingTenant = await prisma.tenant.findFirst({
+      where: {
+        id: tenant.id,
+      },
+    });
+
+    if (existingTenant) {
+      throw new Error(`Tenant with id ${tenant.id} already exists`);
+    }
+
+    const newTenant = await prisma.tenant.create({
+      data: {
+        ...tenant,
+        users: {
+          connect: {
+            id: ownerId,
+          },
+        },
+      },
+    });
+
+    return newTenant;
   }
 }

@@ -49,6 +49,17 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: "/tenant/create",
+    name: "tenant-create",
+    component: () =>
+      import(
+        /* webpackChunkName: "auth" */ "@/views/authentication/CreateTenant.vue"
+      ),
+    meta: {
+      noTenant: true,
+    },
+  },
+  {
     path: "/home",
     name: "home",
     component: () => import(/* webpackChunkName: "home" */ "@/views/Home.vue"),

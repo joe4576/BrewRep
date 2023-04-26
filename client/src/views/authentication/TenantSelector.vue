@@ -53,7 +53,17 @@ const logInToTenant = async (tenantId: string) => {
     </v-row>
     <v-row>
       <v-col cols="12">
-        <v-btn color="primary" block>Create a new tenant</v-btn>
+        <br-btn
+          color="primary"
+          block
+          @click="
+            $router.push({
+              name: 'tenant-create',
+            })
+          "
+        >
+          Create a new tenant
+        </br-btn>
       </v-col>
     </v-row>
     <!-- Select a tenant group if the user already has some -->
@@ -65,9 +75,9 @@ const logInToTenant = async (tenantId: string) => {
       </v-row>
       <v-row v-for="tenant in availableTenants" :key="tenant.id">
         <v-col cols="12">
-          <v-btn color="secondary" block @click="logInToTenant(tenant.id!)">
+          <br-btn color="secondary" block @click="logInToTenant(tenant.id!)">
             {{ tenant.name }}
-          </v-btn>
+          </br-btn>
         </v-col>
       </v-row>
     </template>
