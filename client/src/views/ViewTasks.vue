@@ -48,9 +48,7 @@ const openTaskEditDialog = (task?: Task) => {
   showTaskEditDialog.value = true;
 };
 
-const builder = new GridConfigurationBuilder<Task>();
-
-builder
+const gridConfiguration = new GridConfigurationBuilder<Task>()
   .addTextColumn("Description", (item) => item.description)
   .addTextColumn("Created by", (item) =>
     item.createdByUserId
@@ -65,9 +63,8 @@ builder
       : "-"
   )
   .addDateColumn("Due date", (item) => item.dateDue)
-  .addBooleanColumn("Completed?", (item) => item.completed);
-
-const gridConfiguration = builder.build();
+  .addBooleanColumn("Completed?", (item) => item.completed)
+  .build();
 
 onMounted(refresh);
 </script>
@@ -81,12 +78,12 @@ onMounted(refresh);
             <h4 class="text-h4">Tasks</h4>
           </v-col>
         </v-row>
-        <v-skeleton-loader v-if="loading" type="table-tbody" />
-        <v-row v-else>
+        <v-row>
           <v-col cols="12">
             <br-grid
               :grid-configuration="gridConfiguration"
               :items="tasks"
+              :loading="loading"
               @row-clicked="openTaskEditDialog"
             />
           </v-col>

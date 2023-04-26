@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { userValidator } from "../models/user.model";
 import { UserService } from "../services/userService";
 import { protectedProcedure, router, tenantProcedure } from "../trpc";
+import { uuidValidator } from "../models/validators/commonValidators";
 
 export const userRouter = router({
   getAllUsers: tenantProcedure.query(async ({ ctx }) => {
@@ -29,6 +30,23 @@ export const userRouter = router({
           code: "BAD_REQUEST",
           cause: e,
           message: "Failed to save user",
+        });
+      }
+    }),
+
+  removeUserFromCurrentTenant: tenantProcedure
+    .input(uuidValidator)
+    .mutation(async ({ input, ctx }) => {
+      const { tenant } = ctx;
+      const userService = new UserService(tenant.id!);
+
+      try {
+        await userService.removeUserFromCurrentTenant(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to remove user from tenant",
         });
       }
     }),

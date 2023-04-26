@@ -18,6 +18,23 @@ export class UserService extends BaseService {
 
     return updatedUser;
   }
+
+  public async removeUserFromCurrentTenant(userId: string) {
+    const user = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        tenants: {
+          disconnect: {
+            id: this.tenantId,
+          },
+        },
+      },
+    });
+
+    return user;
+  }
 }
 
 export class PublicUserService {

@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { client } from "@/api/client";
+import ButtonBar from "@/components/ButtonBar.vue";
+import BrConfirmationDialog from "@/components/dialogs/BrConfirmationDialog.vue";
+import BrGrid from "@/components/grid/BrGrid.vue";
+import { GridConfigurationBuilder } from "@/components/grid/gridConfigurationBuilder";
 import BrForm from "@/components/input/BrForm.vue";
 import useDirtyState from "@/composables/useDirtyState";
 import { useFormValidation } from "@/composables/useFormValidation";
@@ -8,7 +12,7 @@ import { useValidationRules } from "@/composables/useValidationRules";
 import { useUserStore } from "@/store/userStore";
 import { Tenant } from "@server/models/tenant.model";
 import { User } from "@server/models/user.model";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 type TenantAndUser = Tenant & {
   users: User[];
@@ -21,6 +25,10 @@ const { required } = useValidationRules();
 const tenant = ref<TenantAndUser>();
 const tenantName = ref("");
 const showUpdatedSnackbar = ref(false);
+const showConfirmationDialog = ref(false);
+const selectedUser = ref<User>();
+
+const users = computed(() => tenant.value?.users ?? []);
 
 const { isDirty, resetDirtyState } = useDirtyState(tenantName);
 
@@ -39,30 +47,72 @@ const [loading, updateTenant] = useLoadingState(async () => {
   resetDirtyState();
 });
 
-const [loadingPrerequisites, loadPrerequisites] = useLoadingState(async () => {
-  if (!userStore.tenantId) {
+const [loadingTenantSettings, loadTenantSettings] = useLoadingState(
+  async () => {
+    if (!userStore.tenantId) {
+      return;
+    }
+
+    tenant.value = await client.tenant.getTenant.query(userStore.tenantId);
+
+    tenantName.value = tenant.value.name;
+    resetDirtyState();
+  }
+);
+
+const showRemoveDialog = (user: User) => {
+  selectedUser.value = user;
+  showConfirmationDialog.value = true;
+};
+
+const removeUserFromCompany = async () => {
+  if (!selectedUser.value?.id) {
     return;
   }
+  await client.user.removeUserFromCurrentTenant.mutate(selectedUser.value.id);
+  showConfirmationDialog.value = false;
+  await loadTenantSettings();
+};
 
-  tenant.value = await client.tenant.getTenant.query(userStore.tenantId);
+const usersGridConfiguration = new GridConfigurationBuilder<User>()
+  .addTextColumn("Username", (item) => item.name)
+  .addBooleanColumn("Is Admin?", (item) => item.isAdmin ?? false)
+  .addActionsColumn((builder) =>
+    builder
+      .addRoutingAction("Edit", () => "user-settings", {
+        visible: (item) => {
+          if (!userStore.user?.id) {
+            return false;
+          }
 
-  tenantName.value = tenant.value.name;
-  resetDirtyState();
-});
+          return userStore.user.id === item.id;
+        },
+      })
+      .addClickAction("Remove", (item) => showRemoveDialog(item), {
+        visible: (item) => {
+          if (!userStore.user?.id) {
+            return true;
+          }
 
-onMounted(loadPrerequisites);
+          return userStore.user.id !== item.id;
+        },
+      })
+  )
+  .build();
+
+onMounted(loadTenantSettings);
 </script>
 
 <template>
   <v-container fluid>
     <v-row>
       <v-col cols="12">
-        <h4 class="text-h4">Company Settings</h4>
+        <br-subtitle>Company Settings</br-subtitle>
       </v-col>
     </v-row>
     <v-row>
       <v-col cols="12" sm="6">
-        <v-card :loading="loadingPrerequisites">
+        <v-card :loading="loadingTenantSettings">
           <v-card-title>Tenant Details</v-card-title>
           <v-card-text>
             <br-form ref="form" @submit.prevent="updateTenant">
@@ -84,7 +134,36 @@ onMounted(loadPrerequisites);
         </v-card>
       </v-col>
     </v-row>
+    <v-row class="mt-8">
+      <v-col cols="12">
+        <br-subtitle>Users in the Company</br-subtitle>
+      </v-col>
+      <v-col cols="12">
+        <br-grid
+          :items="users"
+          :grid-configuration="usersGridConfiguration"
+          :loading="loadingTenantSettings"
+        />
+      </v-col>
+    </v-row>
   </v-container>
+
+  <portal to="footer">
+    <button-bar>
+      <template #right>
+        <br-btn color="primary">Add user</br-btn>
+      </template>
+    </button-bar>
+  </portal>
+
+  <br-confirmation-dialog
+    v-if="showConfirmationDialog && selectedUser"
+    v-model="showConfirmationDialog"
+    @accept="removeUserFromCompany"
+  >
+    Are you sure you want to remove {{ selectedUser.name }} from the company?
+  </br-confirmation-dialog>
+
   <v-snackbar v-model="showUpdatedSnackbar" :timeout="2000">
     Tenant updated successfully! ✅
   </v-snackbar>
