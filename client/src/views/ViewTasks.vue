@@ -64,6 +64,7 @@ builder
         "-"
       : "-"
   )
+  .addDateColumn("Due date", (item) => item.dateDue)
   .addBooleanColumn("Completed?", (item) => item.completed);
 
 const gridConfiguration = builder.build();

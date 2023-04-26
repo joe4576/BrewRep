@@ -1,6 +1,6 @@
 type PropertyExtractor<T, U> = (item: T) => U;
 
-export type CellRenderer = "text" | "boolean";
+export type CellRenderer = "text" | "boolean" | "date";
 
 export type GridConfiguration<T> = Record<string, ColumnConfiguration<T>>;
 
@@ -28,6 +28,15 @@ export class GridConfigurationBuilder<T extends object> {
     this._gridConfiguration[columnHeader] = {
       extractor,
       cellRenderer: "boolean",
+    };
+
+    return this;
+  }
+
+  addDateColumn(columnHeader: string, extractor: PropertyExtractor<T, Date>) {
+    this._gridConfiguration[columnHeader] = {
+      extractor,
+      cellRenderer: "date",
     };
 
     return this;

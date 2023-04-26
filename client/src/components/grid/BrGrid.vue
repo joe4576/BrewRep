@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { GridConfiguration } from "@/components/grid/gridConfigurationBuilder";
 import BooleanColumnRenderer from "@/components/grid/renderers/BooleanColumnRenderer.vue";
+import DateColumnRenderer from "@/components/grid/renderers/DateColumnRenderer.vue";
 import { ColDef } from "@ag-grid-community/core";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
@@ -33,6 +34,8 @@ watch(
           cellRenderer:
             columnConfig.cellRenderer === "boolean"
               ? BooleanColumnRenderer
+              : columnConfig.cellRenderer === "date"
+              ? DateColumnRenderer
               : undefined,
         };
 
