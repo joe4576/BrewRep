@@ -17,7 +17,8 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
     titleExtractor: (item) => item.description,
     contentExtractor: (item) => item.description,
     startDateExtractor: (item) => item.dateDue,
-    endDateExtractor: (item) => item.dateDue,
+    // Tasks don't have a duration, so set to 1 hour so they are visible
+    endDateExtractor: (item) => item.dateDue.addHours(1),
     onEventDurationChange: (item) => {
       // TODO
     },

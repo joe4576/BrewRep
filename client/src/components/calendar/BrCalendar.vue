@@ -44,11 +44,16 @@ const bubbleEventDurationChange = <T extends CalEvent>(
   emit("event-duration-change", eventDurationChange);
 };
 
-const scrollToCurrentTime = () => {
+const scrollToCurrentTime = async () => {
+  // need to wait for this amount of time before scrolling, otherwise
+  // doesn't work when switching between views
+  await new Promise((res) => setTimeout(res, 400));
+
   const calendar = document.querySelector("#vuecal .vuecal__bg");
   const timeWindowHeightPx = 50;
   const now = new Date();
   const hours = now.getHours() + now.getMinutes() / 60;
+
   calendar?.scrollTo({ top: hours * timeWindowHeightPx, behavior: "smooth" });
 };
 </script>
@@ -71,12 +76,13 @@ const scrollToCurrentTime = () => {
     events-on-month-view="short"
     @event-drop="bubbleEventDrop"
     @event-duration-change="bubbleEventDurationChange"
+    @view-change="scrollToCurrentTime"
     @ready="scrollToCurrentTime"
   >
     <template #today-button>
       <v-tooltip location="top">
         <template #activator="{ props }">
-          <v-btn v-bind="props" variant="outlined"> Today </v-btn>
+          <br-btn v-bind="props" variant="outlined"> Today </br-btn>
         </template>
         <span>Go to Today's date</span>
       </v-tooltip>
