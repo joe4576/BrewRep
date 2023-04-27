@@ -1,24 +1,37 @@
 <script setup lang="ts">
 import { client } from "@/api/client";
 import BrCalendar from "@/components/calendar/BrCalendar.vue";
+import BrEventSummaryMenu, {
+  SummaryItem,
+} from "@/components/calendar/BrEventSummaryMenu.vue";
+import TaskEditDialog from "@/components/tasks/TaskEditDialog.vue";
 import { useCalendar } from "@/composables/useCalendar";
 import useLoadingState from "@/composables/useLoadingState";
 import { eventIsTask } from "@/services/plannerService";
 import { Task } from "@server/models/task.model";
-import { onMounted, ref } from "vue";
+import { User } from "@server/models/user.model";
+import { computed, onMounted, ref } from "vue";
 
 const tasks = ref<Task[]>([]);
-
+const users = ref<User[]>([]);
+const selectedTask = ref<Task>();
+const showEditTaskDialog = ref(false);
 const hideWeekends = ref(true);
+const summaryMenuActivator = ref();
 
-onMounted(async () => {
-  tasks.value = await client.task.getAllTasks.query();
+const [refreshLoading, refresh] = useLoadingState(async () => {
+  [tasks.value, users.value] = await Promise.all([
+    client.task.getAllTasks.query(),
+    client.user.getAllUsers.query(),
+  ]);
 });
 
-// save task, but don't get updated list
+onMounted(refresh);
+
 const [savingTask, saveTask] = useLoadingState(
   async (task: Task, newDueDate: Date) => {
     await client.task.saveTask.mutate({ ...task, dateDue: newDueDate });
+    await refresh();
   }
 );
 
@@ -33,8 +46,10 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
     onEventDurationChange: (item) => {
       // TODO
     },
-    onEventClick: (item, nativeEvent) => {
-      // TODO
+    onEventClick: async (item, nativeEvent) => {
+      selectedTask.value = item.payload;
+      summaryMenuActivator.value = nativeEvent.target;
+      nativeEvent.preventDefault();
     },
     onEventDrop: async (item) => {
       await saveTask(item.event.payload, item.newDate);
@@ -48,6 +63,28 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
     },
     resizeable: (item) => !eventIsTask(item),
   });
+
+const eventSummaryItems: SummaryItem[] = [
+  {
+    icon: "mdi-account",
+    body: computed(
+      () =>
+        users.value.find(
+          (user) => user.id === selectedTask.value?.assignedToUserId
+        )?.name ?? "N/A"
+    ),
+  },
+  {
+    icon: "mdi-text-box-edit-outline",
+    body: computed(() => selectedTask.value?.description),
+  },
+  {
+    icon: "mdi-clock-outline",
+    body: computed(
+      () => "Due time: " + selectedTask.value?.dateDue.formatTime("HH:mm")
+    ),
+  },
+];
 </script>
 
 <template>
@@ -61,7 +98,7 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
           density="compact"
         />
       </div>
-      <div v-if="savingTask">
+      <div v-if="savingTask || refreshLoading">
         <v-progress-circular indeterminate />
       </div>
     </div>
@@ -74,6 +111,27 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
       @event-duration-change="onEventDurationChange"
     />
   </v-container>
+
+  <br-event-summary-menu
+    :payload="selectedTask"
+    :activator="summaryMenuActivator"
+    title="Task"
+    prepend-icon="mdi-checkbox-multiple-marked-outline"
+    tooltip-text="Edit Task"
+    :summary-items="eventSummaryItems"
+    @edit="showEditTaskDialog = true"
+  />
+
+  <task-edit-dialog
+    v-model="showEditTaskDialog"
+    v-if="showEditTaskDialog && selectedTask"
+    :task="selectedTask"
+    :users="users"
+    @accept="
+      showEditTaskDialog = false;
+      refresh();
+    "
+  />
 </template>
 
 <style>
