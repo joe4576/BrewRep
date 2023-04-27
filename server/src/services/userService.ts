@@ -4,7 +4,15 @@ import { BaseService } from "./baseService";
 
 export class UserService extends BaseService {
   public async getAllUsers(): Promise<User[]> {
-    const allUsers: User[] = await prisma.user.findMany();
+    const allUsers: User[] = await prisma.user.findMany({
+      where: {
+        tenants: {
+          some: {
+            id: this.tenantId,
+          },
+        },
+      },
+    });
     return allUsers;
   }
 

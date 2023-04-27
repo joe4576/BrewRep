@@ -1,8 +1,10 @@
+import { RouteLocationRaw } from "vue-router";
+
 type Callback<T, V = any> = ((item: T) => V) | ((item: T) => Promise<V>);
 
 export type Action<T> = {
   name: string;
-  routeNameCallback?: Callback<T>;
+  routerLocationCallback?: (item: T) => RouteLocationRaw;
   callback?: Callback<T>;
   options?: ActionOptions<T>;
 };
@@ -16,12 +18,12 @@ export class ActionConfigurationBuilder<T extends object> {
 
   addRoutingAction(
     name: string,
-    routeNameCallback: Callback<T, string>,
+    routerLocationCallback: (item: T) => RouteLocationRaw,
     options?: ActionOptions<T>
   ) {
     this._actions.push({
       name,
-      routeNameCallback,
+      routerLocationCallback,
       options,
     });
 

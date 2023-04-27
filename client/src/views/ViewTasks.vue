@@ -10,6 +10,7 @@ import { v4 as uuid } from "uuid";
 import { useUserStore } from "@/store/userStore";
 import { GridConfigurationBuilder } from "@/components/grid/gridConfigurationBuilder";
 import BrGrid from "@/components/grid/BrGrid.vue";
+import BrPage from "@/components/base/BrPage.vue";
 
 const tasks = ref<Task[]>([]);
 const users = ref<User[]>([]);
@@ -70,27 +71,15 @@ onMounted(refresh);
 </script>
 
 <template>
-  <v-container fluid>
-    <v-row>
-      <v-col cols="12">
-        <v-row>
-          <v-col cols="12">
-            <h4 class="text-h4">Tasks</h4>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12">
-            <br-grid
-              :grid-configuration="gridConfiguration"
-              :items="tasks"
-              :loading="loading"
-              @row-clicked="openTaskEditDialog"
-            />
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
-  </v-container>
+  <br-page title="Tasks">
+    <br-grid
+      :grid-configuration="gridConfiguration"
+      :items="tasks"
+      :loading="loading"
+      @row-clicked="openTaskEditDialog"
+    />
+  </br-page>
+
   <portal to="footer">
     <button-bar>
       <template #left>

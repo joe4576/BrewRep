@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import generateTenantData from "./tenants";
 import generateTaskData from "./tasks";
+import generateOutletData from "./outlets";
 
 const prisma = new PrismaClient();
 
@@ -16,6 +17,7 @@ async function main() {
   await dropAllRows();
   await generateTenantData(prisma);
   await generateTaskData(prisma);
+  await generateOutletData(prisma);
 }
 
 main().catch((e) => {

@@ -20,11 +20,7 @@ defineProps<ActionsColumnRendererProps>();
       <template v-for="action in params.actions" :key="action.name">
         <v-list-item
           v-if="action.options?.visible?.(params.data) ?? true"
-          :to="
-            action.routeNameCallback && {
-              name: action.routeNameCallback(params.data),
-            }
-          "
+          :to="action.routerLocationCallback?.(params.data)"
           @click="action.callback?.(params.data)"
         >
           <v-list-item-title>

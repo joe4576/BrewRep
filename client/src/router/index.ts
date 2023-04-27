@@ -77,6 +77,29 @@ const routes: RouteRecordRaw[] = [
       import(/* webpackChunkName: "tasks" */ "@/views/ViewTasks.vue"),
   },
   {
+    path: "/outlets",
+    name: "outlets",
+    component: () =>
+      import(
+        /* webpackChunkName: "outlets" */ "@/views/outlet/ViewAllOutlets.vue"
+      ),
+  },
+  {
+    path: "/outlets/:id",
+    name: "view-outlet",
+    component: () =>
+      import(/* webpackChunkName: "outlets" */ "@/views/outlet/ViewOutlet.vue"),
+    props: (route) => ({
+      outletId: route.params.id,
+    }),
+  },
+  {
+    path: "/outlets/map",
+    name: "outlets-map",
+    component: () =>
+      import(/* webpackChunkName: "outlets" */ "@/views/outlet/OutletMap.vue"),
+  },
+  {
     path: "/settings/company",
     name: "company-settings",
     component: () =>
