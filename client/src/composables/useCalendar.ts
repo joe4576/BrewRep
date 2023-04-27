@@ -13,6 +13,7 @@ interface CalendarConfiguration<T> {
   titleExtractor?: (item: T) => string;
   contentExtractor?: (item: T) => string;
   class?: (item: T) => string;
+  resizeable?: (item: T) => boolean;
   onEventClick: (
     item: DecoratedCalEvent<T>,
     nativeEvent: Event
@@ -25,7 +26,7 @@ interface CalendarConfiguration<T> {
   ) => void | Promise<void>;
 }
 
-type DecoratedCalEvent<T> = CalEvent & {
+export type DecoratedCalEvent<T> = CalEvent & {
   payload: T;
 };
 
@@ -39,6 +40,7 @@ export function useCalendar<T>(configuration: CalendarConfiguration<T>) {
       title: configuration.titleExtractor?.(event),
       content: configuration.contentExtractor?.(event),
       class: configuration.class?.(event),
+      resizable: configuration.resizeable?.(event),
       payload: {
         ...event,
       },

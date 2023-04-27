@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import VueCal, { Props, type Event as CalEvent } from "vue-cal";
 import "vue-cal/dist/vuecal.css";
+import BrEvent from "@/components/calendar/BrEvent.vue";
 
 export interface EventDrop<T extends CalEvent> {
   event: T;
@@ -87,6 +88,9 @@ const scrollToCurrentTime = async () => {
         <span>Go to Today's date</span>
       </v-tooltip>
     </template>
+    <template #event="{ event }">
+      <br-event :event="event" />
+    </template>
   </vue-cal>
 </template>
 
@@ -94,7 +98,7 @@ const scrollToCurrentTime = async () => {
 <style>
 .vuecal__menu,
 .vuecal__cell-events-count {
-  background-color: #002e5d;
+  background-color: #01579b;
   color: white;
 }
 

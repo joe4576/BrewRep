@@ -2,6 +2,7 @@
 import { client } from "@/api/client";
 import BrCalendar from "@/components/calendar/BrCalendar.vue";
 import { useCalendar } from "@/composables/useCalendar";
+import { eventIsTask } from "@/services/plannerService";
 import { Task } from "@server/models/task.model";
 import { onMounted, ref } from "vue";
 
@@ -28,6 +29,14 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
     onEventDrop: (item) => {
       // TODO
     },
+    class: (item) => {
+      if (eventIsTask(item)) {
+        return "task-background";
+      }
+
+      return "visit-background";
+    },
+    resizeable: (item) => !eventIsTask(item),
   });
 </script>
 
@@ -42,3 +51,15 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
     />
   </v-container>
 </template>
+
+<style>
+.task-background {
+  background-color: #019b91;
+  color: white;
+}
+
+.visit-background {
+  background-color: #9b4401;
+  color: white;
+}
+</style>
