@@ -2,6 +2,7 @@
 import { client } from "@/api/client";
 import BrCalendar from "@/components/calendar/BrCalendar.vue";
 import { useCalendar } from "@/composables/useCalendar";
+import useLoadingState from "@/composables/useLoadingState";
 import { eventIsTask } from "@/services/plannerService";
 import { Task } from "@server/models/task.model";
 import { onMounted, ref } from "vue";
@@ -13,6 +14,13 @@ const hideWeekends = ref(true);
 onMounted(async () => {
   tasks.value = await client.task.getAllTasks.query();
 });
+
+// save task, but don't get updated list
+const [savingTask, saveTask] = useLoadingState(
+  async (task: Task, newDueDate: Date) => {
+    await client.task.saveTask.mutate({ ...task, dateDue: newDueDate });
+  }
+);
 
 const { events, onEventClick, onEventDrop, onEventDurationChange } =
   useCalendar({
@@ -28,8 +36,8 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
     onEventClick: (item, nativeEvent) => {
       // TODO
     },
-    onEventDrop: (item) => {
-      // TODO
+    onEventDrop: async (item) => {
+      await saveTask(item.event.payload, item.newDate);
     },
     class: (item) => {
       if (eventIsTask(item)) {
@@ -44,13 +52,18 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
 
 <template>
   <v-container class="pa-0" fluid style="height: calc(100vh - 125px)">
-    <div>
-      <br-checkbox
-        v-model="hideWeekends"
-        label="Hide Weekends"
-        hide-details
-        density="compact"
-      />
+    <div class="d-flex justify-space-between">
+      <div>
+        <br-checkbox
+          v-model="hideWeekends"
+          label="Hide Weekends"
+          hide-details
+          density="compact"
+        />
+      </div>
+      <div v-if="savingTask">
+        <v-progress-circular indeterminate />
+      </div>
     </div>
     <br-calendar
       :events="events"
