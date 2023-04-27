@@ -13,7 +13,12 @@ const props = defineProps<BrDateProps>();
 const emit = defineEmits<BrDateEmits>();
 
 const formattedDate = computed({
-  get: () => props.modelValue.toISOString().slice(0, 16),
+  get: () =>
+    new Date(
+      props.modelValue.getTime() - props.modelValue.getTimezoneOffset() * 60000
+    )
+      .toISOString()
+      .slice(0, 16),
   set: (val: string) => emit("update:modelValue", new Date(val)),
 });
 </script>
