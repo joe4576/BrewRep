@@ -41,6 +41,11 @@ const menuItems: MenuItem[] = [
     to: "/tasks",
   },
   {
+    title: "Outlets",
+    prependIcon: "mdi-cart",
+    to: "/outlets",
+  },
+  {
     title: "Settings",
     prependIcon: "mdi-cog",
     subMenuItems: [

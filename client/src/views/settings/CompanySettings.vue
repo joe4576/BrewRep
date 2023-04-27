@@ -96,15 +96,21 @@ const usersGridConfiguration = new GridConfigurationBuilder<User>()
   .addBooleanColumn("Is Admin?", (item) => item.isAdmin ?? false)
   .addActionsColumn((builder) =>
     builder
-      .addRoutingAction("Edit", () => "user-settings", {
-        visible: (item) => {
-          if (!userStore.user?.id) {
-            return false;
-          }
+      .addRoutingAction(
+        "Edit",
+        () => ({
+          name: "user-settings",
+        }),
+        {
+          visible: (item) => {
+            if (!userStore.user?.id) {
+              return false;
+            }
 
-          return userStore.user.id === item.id;
-        },
-      })
+            return userStore.user.id === item.id;
+          },
+        }
+      )
       .addClickAction("Remove", (item) => showRemoveDialog(item), {
         visible: (item) => {
           if (!userStore.user?.id) {
