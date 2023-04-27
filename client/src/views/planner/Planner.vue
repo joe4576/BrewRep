@@ -8,6 +8,8 @@ import { onMounted, ref } from "vue";
 
 const tasks = ref<Task[]>([]);
 
+const hideWeekends = ref(true);
+
 onMounted(async () => {
   tasks.value = await client.task.getAllTasks.query();
 });
@@ -41,10 +43,19 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
 </script>
 
 <template>
-  <v-container fluid class="pa-0" style="height: calc(100vh - 100px)">
+  <v-container class="pa-0" fluid style="height: calc(100vh - 125px)">
+    <div>
+      <br-checkbox
+        v-model="hideWeekends"
+        label="Hide Weekends"
+        hide-details
+        density="compact"
+      />
+    </div>
     <br-calendar
       :events="events"
       :snap-to-time="15"
+      :hide-weekends="hideWeekends"
       @event-click="onEventClick"
       @event-drop="onEventDrop"
       @event-duration-change="onEventDurationChange"
