@@ -94,6 +94,12 @@ const routes: RouteRecordRaw[] = [
     }),
   },
   {
+    path: "/outlets/map",
+    name: "outlets-map",
+    component: () =>
+      import(/* webpackChunkName: "outlets" */ "@/views/outlet/OutletMap.vue"),
+  },
+  {
     path: "/settings/company",
     name: "company-settings",
     component: () =>

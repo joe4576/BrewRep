@@ -37,6 +37,11 @@ onMounted(refresh);
 
 <template>
   <br-page title="Outlets">
+    <template #summary>
+      <br-btn color="primary" @click="$router.push({ name: 'outlets-map' })">
+        Go to Map 🌍
+      </br-btn>
+    </template>
     <br-grid
       :items="outlets"
       :grid-configuration="gridConfiguration"
