@@ -55,7 +55,7 @@ export class GridConfigurationBuilder<T extends object> {
   }
 
   addActionsColumn(builder: (builder: ActionConfigurationBuilder<T>) => void) {
-    const actionsConfigurationBuilder = new ActionConfigurationBuilder();
+    const actionsConfigurationBuilder = new ActionConfigurationBuilder<T>();
     builder(actionsConfigurationBuilder);
 
     this._gridConfiguration[this.actionsHeaderKey] = {

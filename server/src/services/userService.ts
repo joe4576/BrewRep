@@ -60,6 +60,17 @@ export class UserService extends BaseService {
 
     return user;
   }
+
+  public async getUsers(userIds: string[]) {
+    const users = await prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+    });
+    return users;
+  }
 }
 
 export class PublicUserService {

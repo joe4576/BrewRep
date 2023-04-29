@@ -24,8 +24,6 @@ const [refreshLoading, refresh] = useLoadingState(async () => {
     client.task.getAllTasks.query(),
     client.user.getAllUsers.query(),
   ]);
-  console.log(tasks.value)
-  console.log(users.value)
 });
 
 onMounted(refresh);
