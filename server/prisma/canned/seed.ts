@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import generateTenantData from "./tenants";
 import generateTaskData from "./tasks";
 import generateOutletData from "./outlets";
+import genenrateSalesVisitsData from "./salesVisits";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,9 @@ async function dropAllRows() {
     prisma.user.deleteMany(),
     prisma.tenant.deleteMany(),
     prisma.task.deleteMany(),
+    prisma.outlet.deleteMany(),
+    prisma.salesJourney.deleteMany(),
+    prisma.salesVisit.deleteMany(),
   ]);
 }
 
@@ -18,6 +22,7 @@ async function main() {
   await generateTenantData(prisma);
   await generateTaskData(prisma);
   await generateOutletData(prisma);
+  await genenrateSalesVisitsData(prisma);
 }
 
 main().catch((e) => {

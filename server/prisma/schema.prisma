@@ -16,7 +16,8 @@ model User {
   isAdmin       Boolean       @default(false)
   uid           String
   tasks         Task[]
-  tenants       Tenant[]        
+  tenants       Tenant[]
+  salesJourneys SalesJourney[]        
 }
 
 model Tenant {
@@ -45,4 +46,40 @@ model Outlet {
   code          String
   lat           String
   long          String
+  salesVisits   SalesVisit[]
+  communicationLogs   CommunicationLog[]
+}
+
+model CommunicationLog {
+  tenantId      String
+  id            String      @id @default(uuid())
+  outlet        Outlet      @relation(fields: [outletId], references: [id], onDelete: Cascade) 
+  outletId      String
+  log           String
+  salesVisit    SalesVisit? @relation(fields: [salesVisitId], references: [id], onDelete: SetNull)
+  salesVisitId  String?
+}
+
+model SalesVisit {
+  tenantId          String
+  id                String              @id @default(uuid())
+  startTime         DateTime?
+  endTime           DateTime?
+  outlet            Outlet              @relation(fields: [outletId], references: [id], onDelete: Cascade) 
+  outletId          String
+  communicationLogs CommunicationLog[]
+  salesJourney      SalesJourney?       @relation(fields: [salesJourneyId], references: [id], onDelete: SetNull)
+  salesJourneyId    String?
+}
+
+model SalesJourney {
+  tenantId        String
+  id              String          @id @default(uuid())
+  salesVisits     SalesVisit[]
+  startMilage     Int             @default(0)
+  endMilage       Int             @default(0)
+  date            DateTime
+  user            User            @relation(fields: [assignedUserId], references: [id], onDelete: Cascade)
+  assignedUserId  String 
+  completed       Boolean         @default(false)
 }

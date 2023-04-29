@@ -115,6 +115,15 @@ const routes: RouteRecordRaw[] = [
         /* webpackChunkName: "settings" */ "@/views/settings/UserSettings.vue"
       ),
   },
+
+  {
+    path: "/sales/journeys",
+    name: "sales-journeys",
+    component: () =>
+      import(
+        /* webpackChunkName: "sales" */ "@/views/sales/ViewAllSalesJourneys.vue"
+      ),
+  },
 ];
 
 const router = createRouter({
