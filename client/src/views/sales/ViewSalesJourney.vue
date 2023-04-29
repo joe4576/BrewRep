@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useLoadingState from "@/composables/useLoadingState";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { SalesJourney } from "@server/models/salesJourney.model";
 import { client } from "@/api/client";
 import BrPage from "@/components/base/BrPage.vue";
@@ -40,13 +40,29 @@ const [updating, updateSalesJourney] = useLoadingState(async () => {
   });
 });
 
+const salesJourneyStatus = computed(() => {
+  if (!salesJourney.value) {
+    return "-";
+  }
+
+  if (salesJourney.value?.inProgress) {
+    return "In Progress";
+  }
+
+  if (salesJourney.value?.completed) {
+    return "Completed";
+  }
+
+  return "Pending";
+});
+
 onMounted(refresh);
 </script>
 
 <template>
   <br-page title="Sales Journey">
     <template #summary>
-      {{ salesJourney?.completed ? "Completed" : "Open" }}
+      {{ salesJourneyStatus }}
     </template>
     <v-row>
       <v-col cols="12" sm="6">

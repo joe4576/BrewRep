@@ -11,75 +11,76 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(uuid())
+  id            String         @id @default(uuid())
   name          String
-  isAdmin       Boolean       @default(false)
+  isAdmin       Boolean        @default(false)
   uid           String
   tasks         Task[]
   tenants       Tenant[]
-  salesJourneys SalesJourney[]        
+  salesJourneys SalesJourney[]
 }
 
 model Tenant {
-  id            String      @id @default(uuid())
-  name          String
-  dateCreated   DateTime    @default(now())
-  users         User[]
+  id          String   @id @default(uuid())
+  name        String
+  dateCreated DateTime @default(now())
+  users       User[]
 }
 
 model Task {
-  tenantId      String
-  id            String      @id @default(uuid())
-  user          User        @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
-  createdByUserId        String
-  assignedToUserId       String?       
-  dateCreated   DateTime    @default(now())
-  dateDue       DateTime
-  description   String      @default("")
-  completed     Boolean     @default(false)
+  tenantId         String
+  id               String   @id @default(uuid())
+  user             User     @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  createdByUserId  String
+  assignedToUserId String?
+  dateCreated      DateTime @default(now())
+  dateDue          DateTime
+  description      String   @default("")
+  completed        Boolean  @default(false)
 }
 
 model Outlet {
-  tenantId      String
-  id            String      @id @default(uuid())
-  name          String
-  code          String
-  lat           String
-  long          String
-  salesVisits   SalesVisit[]
-  communicationLogs   CommunicationLog[]
+  tenantId          String
+  id                String             @id @default(uuid())
+  name              String
+  code              String
+  lat               String
+  long              String
+  salesVisits       SalesVisit[]
+  communicationLogs CommunicationLog[]
 }
 
 model CommunicationLog {
-  tenantId      String
-  id            String      @id @default(uuid())
-  outlet        Outlet      @relation(fields: [outletId], references: [id], onDelete: Cascade) 
-  outletId      String
-  log           String
-  salesVisit    SalesVisit? @relation(fields: [salesVisitId], references: [id], onDelete: SetNull)
-  salesVisitId  String?
+  tenantId     String
+  id           String      @id @default(uuid())
+  outlet       Outlet      @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  outletId     String
+  log          String
+  salesVisit   SalesVisit? @relation(fields: [salesVisitId], references: [id], onDelete: SetNull)
+  salesVisitId String?
 }
 
 model SalesVisit {
   tenantId          String
-  id                String              @id @default(uuid())
+  id                String             @id @default(uuid())
   startTime         DateTime?
   endTime           DateTime?
-  outlet            Outlet              @relation(fields: [outletId], references: [id], onDelete: Cascade) 
+  outlet            Outlet             @relation(fields: [outletId], references: [id], onDelete: Cascade)
   outletId          String
   communicationLogs CommunicationLog[]
-  salesJourney      SalesJourney?       @relation(fields: [salesJourneyId], references: [id], onDelete: SetNull)
+  salesJourney      SalesJourney?      @relation(fields: [salesJourneyId], references: [id], onDelete: SetNull)
   salesJourneyId    String?
 }
 
 model SalesJourney {
-  tenantId        String
-  id              String          @id @default(uuid())
-  salesVisits     SalesVisit[]
-  startMilage     Int             @default(0)
-  endMilage       Int             @default(0)
-  date            DateTime
-  user            User            @relation(fields: [assignedUserId], references: [id], onDelete: Cascade)
-  assignedUserId  String 
-  completed       Boolean         @default(false)
+  tenantId       String
+  id             String       @id @default(uuid())
+  salesVisits    SalesVisit[]
+  startMilage    Int          @default(0)
+  endMilage      Int          @default(0)
+  date           DateTime
+  user           User         @relation(fields: [assignedUserId], references: [id], onDelete: Cascade)
+  assignedUserId String
+  completed      Boolean      @default(false)
+  inProgress     Boolean      @default(false)
 }
