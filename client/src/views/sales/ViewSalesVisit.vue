@@ -14,6 +14,10 @@ import useDirtyState from "@/composables/useDirtyState";
 import BrDropdown from "@/components/input/BrDropdown.vue";
 import { useValidationRules } from "@/composables/useValidationRules";
 import ButtonBar from "@/components/ButtonBar.vue";
+import { CommunicationLog } from "@server/models/communicationLog.model";
+import { User } from "@server/models/user.model";
+import BrSubtitle from "@/components/text/BrSubtitle.vue";
+import CommunicationLogs from "@/components/sales/CommunicationLogs.vue";
 
 type SalesVisitAndJourney = SalesVisit & {
   salesJourney: SalesJourney | null;
@@ -28,6 +32,8 @@ const props = defineProps<ViewSalesJourneyProps>();
 const salesVisit = ref<SalesVisitAndJourney>();
 const outlets = ref<Outlet[]>([]);
 const salesJourneys = ref<SalesJourney[]>([]);
+const communicationLogs = ref<CommunicationLog[]>([]);
+const users = ref<User[]>([]);
 
 const internalSalesVisit = reactive<SalesVisit>({
   endTime: new Date(),
@@ -46,11 +52,20 @@ const { isDirty, resetDirtyState } = useDirtyState(ref(internalSalesVisit));
 const router = useRouter();
 
 const [loading, refresh] = useLoadingState(async () => {
-  [salesVisit.value, outlets.value, salesJourneys.value] = await Promise.all([
-    client.salesVisit.getSalesVisit.query(props.salesVisitId),
-    client.outlet.getAllOutlets.query(),
-    client.salesJourney.getAllSalesJourneys.query(),
-  ]);
+  [salesVisit.value, outlets.value, salesJourneys.value, users.value] =
+    await Promise.all([
+      client.salesVisit.getSalesVisit.query(props.salesVisitId),
+      client.outlet.getAllOutlets.query(),
+      client.salesJourney.getAllSalesJourneys.query(),
+      client.user.getAllUsers.query(),
+    ]);
+
+  if (salesVisit.value?.outletId) {
+    communicationLogs.value =
+      await client.communicationLog.getCommunicationLogsForOutlet.query(
+        salesVisit.value.outletId
+      );
+  }
 
   Object.entries(salesVisit.value).forEach(
     // @ts-ignore
@@ -137,6 +152,17 @@ onMounted(refresh);
             />
           </v-card-text>
         </v-card>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col cols="12">
+        <br-subtitle>Communication logs</br-subtitle>
+      </v-col>
+      <v-col cols="12" md="6">
+        <communication-logs
+          :communication-logs="communicationLogs"
+          :users="users"
+        />
       </v-col>
     </v-row>
     <template #footer>

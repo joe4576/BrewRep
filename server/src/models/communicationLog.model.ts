@@ -10,6 +10,7 @@ export const communicationLogValidator = z.object({
   description: z.string(),
   salesVisitId: optionalUuidValidator,
   authorId: uuidValidator,
+  outletId: uuidValidator,
 });
 
 export type CommunicationLog = z.infer<typeof communicationLogValidator>;
