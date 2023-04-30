@@ -133,7 +133,7 @@ onMounted(refresh);
             <br-subtitle>Visits on Journey</br-subtitle>
           </v-col>
           <v-col cols="auto">
-            <br-btn color="primary">
+            <br-btn color="primary" :disabled="loading">
               Add Visit
               <v-icon icon="mdi-plus-circle-outline" class="ml-2" />
             </br-btn>
@@ -156,10 +156,18 @@ onMounted(refresh);
     <template #footer>
       <button-bar>
         <template #right>
-          <br-btn v-if="salesJourney?.inProgress" color="primary">
+          <br-btn
+            v-if="salesJourney?.inProgress"
+            color="primary"
+            :disabled="loading"
+          >
             Finish Journey
           </br-btn>
-          <br-btn v-else="salesJourney?.inProgress" color="primary">
+          <br-btn
+            v-else="salesJourney?.inProgress"
+            color="primary"
+            :disabled="loading"
+          >
             Start Journey
           </br-btn>
         </template>
