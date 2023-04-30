@@ -134,7 +134,7 @@ onMounted(refresh);
         <v-card :loading="loading">
           <v-card-title> Sales Journey Details</v-card-title>
           <v-card-text>
-            <br-form ref="form">
+            <br-form ref="form" @submit.prevent="updateSalesJourney">
               <br-text
                 v-model="internalSalesJourney.reference"
                 label="Reference"
