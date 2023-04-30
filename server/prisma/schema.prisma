@@ -41,13 +41,14 @@ model Task {
 }
 
 model Outlet {
-  tenantId    String
-  id          String       @id @default(uuid())
-  name        String
-  code        String
-  lat         String
-  long        String
-  salesVisits SalesVisit[]
+  tenantId          String
+  id                String             @id @default(uuid())
+  name              String
+  code              String
+  lat               String
+  long              String
+  salesVisits       SalesVisit[]
+  communicationLogs CommunicationLog[]
 }
 
 model CommunicationLog {
@@ -58,6 +59,8 @@ model CommunicationLog {
   salesVisitId String?
   user         User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId     String
+  outlet       Outlet      @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  outletId     String
 }
 
 enum SalesVisitStatus {

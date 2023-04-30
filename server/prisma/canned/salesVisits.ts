@@ -54,6 +54,7 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
         tenantId,
         authorId: joeId,
         description: "Initial Communication",
+        outletId: wetherspoonsId,
       },
       {
         tenantId,
@@ -61,6 +62,7 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
         authorId: joeId,
         description:
           "Follow up communication, they might be interested in ordering",
+        outletId: joesBreweryId,
       },
       {
         tenantId,
@@ -68,18 +70,21 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
         authorId: joeId,
         description:
           "First conversation went well, they will be in contact to arrange a follow up meeting",
+        outletId: stMarysId,
       },
       {
         tenantId,
         salesVisitId: visit2Id,
         authorId: chrisId,
         description: "Chris spoke to them and they want to order next week",
+        outletId: stMarysId,
       },
       {
         tenantId,
         salesVisitId: visit3Id,
         authorId: joeId,
         description: "They are interested in Plucky Star IPA",
+        outletId: wetherspoonsId,
       },
     ],
   });
