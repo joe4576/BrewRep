@@ -3,6 +3,7 @@ import { router, tenantProcedure } from "../trpc";
 import { SalesJourneyService } from "../services/salesJourneyService";
 import { uuidValidator } from "../models/validators/commonValidators";
 import { salesJourneyValidator } from "../models/salesJourney.model";
+import { z } from "zod";
 
 export const salesJourneyRouter = router({
   getAllSalesJourneys: tenantProcedure.query(async ({ ctx }) => {
@@ -46,6 +47,31 @@ export const salesJourneyRouter = router({
           code: "BAD_REQUEST",
           cause: e,
           message: "Failed to save sales journey",
+        });
+      }
+    }),
+
+  removeVisitFromSalesJourney: tenantProcedure
+    .input(
+      z.object({
+        salesJourneyId: uuidValidator,
+        salesVisitId: uuidValidator,
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const salesJourneyService = new SalesJourneyService(ctx.tenant.id!);
+      const { salesJourneyId, salesVisitId } = input;
+
+      try {
+        return await salesJourneyService.removeVisitFromSalesJourney(
+          salesVisitId,
+          salesJourneyId
+        );
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to remove visit from journey",
         });
       }
     }),

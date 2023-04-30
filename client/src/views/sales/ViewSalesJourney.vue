@@ -106,6 +106,18 @@ const gridConfiguration = new GridConfigurationBuilder<SalesVisit>()
     builder.addRoutingAction("View", (item) => ({
       path: `/sales/visits/${item.id}`,
     }));
+    builder.addClickAction("Remove Visit", async (item) => {
+      if (!item.salesJourneyId) {
+        return;
+      }
+
+      await client.salesJourney.removeVisitFromSalesJourney.mutate({
+        salesJourneyId: item.salesJourneyId,
+        salesVisitId: item.id,
+      });
+
+      await refresh();
+    });
   })
   .build();
 

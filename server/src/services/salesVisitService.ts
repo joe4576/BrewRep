@@ -62,7 +62,7 @@ export class SalesVisitService extends BaseService {
       },
     });
 
-    if (visitsWithReference.length) {
+    if (visitsWithReference.length > 1) {
       throw new Error(`Visit with reference ${visit.reference} already exists`);
     }
 

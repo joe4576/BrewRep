@@ -65,6 +65,26 @@ export class SalesJourneyService extends BaseService {
     });
   }
 
+  public async removeVisitFromSalesJourney(
+    visitId: string,
+    salesJourneyId: string
+  ) {
+    const journey = await prisma.salesJourney.update({
+      where: {
+        id: salesJourneyId,
+      },
+      data: {
+        salesVisits: {
+          disconnect: {
+            id: visitId,
+          },
+        },
+      },
+    });
+
+    return journey;
+  }
+
   public async createSalesJourney(journey: SalesJourney) {
     if (journey.tenantId !== this.tenantId) {
       throw new Error("Tenant ids don't match");
