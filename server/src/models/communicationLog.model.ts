@@ -7,9 +7,9 @@ import {
 export const communicationLogValidator = z.object({
   tenantId: uuidValidator,
   id: uuidValidator,
-  outletId: uuidValidator,
-  log: z.string(),
+  description: z.string(),
   salesVisitId: optionalUuidValidator,
+  authorId: uuidValidator,
 });
 
 export type CommunicationLog = z.infer<typeof communicationLogValidator>;

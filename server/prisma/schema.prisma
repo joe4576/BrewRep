@@ -11,13 +11,14 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  name          String
-  isAdmin       Boolean        @default(false)
-  uid           String
-  tasks         Task[]
-  tenants       Tenant[]
-  salesJourneys SalesJourney[]
+  id               String             @id @default(uuid())
+  name             String
+  isAdmin          Boolean            @default(false)
+  uid              String
+  tasks            Task[]
+  tenants          Tenant[]
+  salesJourneys    SalesJourney[]
+  CommunicationLog CommunicationLog[]
 }
 
 model Tenant {
@@ -40,24 +41,23 @@ model Task {
 }
 
 model Outlet {
-  tenantId          String
-  id                String             @id @default(uuid())
-  name              String
-  code              String
-  lat               String
-  long              String
-  salesVisits       SalesVisit[]
-  communicationLogs CommunicationLog[]
+  tenantId    String
+  id          String       @id @default(uuid())
+  name        String
+  code        String
+  lat         String
+  long        String
+  salesVisits SalesVisit[]
 }
 
 model CommunicationLog {
   tenantId     String
   id           String      @id @default(uuid())
-  outlet       Outlet      @relation(fields: [outletId], references: [id], onDelete: Cascade)
-  outletId     String
-  log          String
+  description  String
   salesVisit   SalesVisit? @relation(fields: [salesVisitId], references: [id], onDelete: SetNull)
   salesVisitId String?
+  user         User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId     String
 }
 
 enum SalesVisitStatus {
