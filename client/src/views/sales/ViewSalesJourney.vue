@@ -104,7 +104,7 @@ const gridConfiguration = new GridConfigurationBuilder<SalesVisit>()
   .addTextColumn("Status", (item) => item.status)
   .addActionsColumn((builder) => {
     builder.addRoutingAction("View", (item) => ({
-      name: "home",
+      path: `/sales/visits/${item.id}`,
     }));
   })
   .build();
@@ -172,7 +172,7 @@ onMounted(refresh);
           :loading="loading"
           @row-clicked="
             $router.push({
-              name: 'home',
+              path: `/sales/visits/${$event.id}`,
             })
           "
         />
