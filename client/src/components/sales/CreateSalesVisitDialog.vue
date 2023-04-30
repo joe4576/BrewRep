@@ -99,6 +99,7 @@ const [creating, createSalesVisit] = useLoadingState(async () => {
         :items="salesJourneys"
         :item-title="(item: SalesJourney) => item.reference"
         :item-value="(item: SalesJourney) => item.id"
+        clearable
       />
     </br-form>
   </br-dialog>
