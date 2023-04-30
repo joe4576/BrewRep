@@ -28,6 +28,7 @@ const openSalesJourney = async (item: SalesJourney) => {
 };
 
 const gridConfiguration = new GridConfigurationBuilder<SalesJourney>()
+  .addTextColumn("Reference", (item) => item.reference)
   .addTextColumn(
     "Assigned to user",
     (item) =>

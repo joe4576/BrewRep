@@ -76,6 +76,7 @@ model SalesVisit {
   salesJourney      SalesJourney?      @relation(fields: [salesJourneyId], references: [id], onDelete: SetNull)
   salesJourneyId    String?
   status            SalesVisitStatus   @default(OPEN)
+  reference         String             @default("")
 }
 
 model SalesJourney {
@@ -89,4 +90,5 @@ model SalesJourney {
   assignedUserId String
   completed      Boolean      @default(false)
   inProgress     Boolean      @default(false)
+  reference      String       @default("")
 }

@@ -14,6 +14,7 @@ export const salesVisitValidator = z.object({
   outletId: uuidValidator,
   salesJourneyId: optionalUuidValidator,
   status: z.enum(salesVisitStatus).default("OPEN"),
+  reference: z.string(),
 });
 
 export type SalesVisit = z.infer<typeof salesVisitValidator>;

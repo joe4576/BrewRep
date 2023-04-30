@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useLoadingState from "@/composables/useLoadingState";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { SalesJourney } from "@server/models/salesJourney.model";
 import { client } from "@/api/client";
 import BrPage from "@/components/base/BrPage.vue";
@@ -12,6 +12,7 @@ import { useRouter } from "vue-router";
 import { Outlet } from "@server/models/outlet.model";
 import useDirtyState from "@/composables/useDirtyState";
 import BrDropdown from "@/components/input/BrDropdown.vue";
+import { useValidationRules } from "@/composables/useValidationRules";
 
 type SalesVisitAndJourney = SalesVisit & {
   salesJourney: SalesJourney | null;
@@ -26,16 +27,20 @@ const props = defineProps<ViewSalesJourneyProps>();
 const salesVisit = ref<SalesVisitAndJourney>();
 const outlets = ref<Outlet[]>([]);
 
-const salesVisitStartDate = ref<Date>(new Date());
-const salesVisitEndDate = ref<Date>(new Date());
-const salesVisitOutletId = ref<string | null>(null);
+const internalSalesVisit = reactive<SalesVisit>({
+  endTime: new Date(),
+  reference: "",
+  status: "OPEN",
+  startTime: new Date(),
+  outletId: "",
+  id: "",
+  salesJourneyId: "",
+  tenantId: "",
+});
 
 const { form } = useFormValidation();
-const { isDirty, resetDirtyState } = useDirtyState(
-  salesVisitStartDate,
-  salesVisitEndDate,
-  salesVisitOutletId
-);
+const { required } = useValidationRules();
+const { isDirty, resetDirtyState } = useDirtyState(ref(internalSalesVisit));
 const router = useRouter();
 
 const [loading, refresh] = useLoadingState(async () => {
@@ -44,24 +49,24 @@ const [loading, refresh] = useLoadingState(async () => {
     client.outlet.getAllOutlets.query(),
   ]);
 
-  salesVisitStartDate.value = salesVisit.value?.startTime;
-  salesVisitEndDate.value = salesVisit.value?.endTime;
-  salesVisitOutletId.value = salesVisit.value?.outletId;
+  Object.entries(salesVisit.value).forEach(
+    // @ts-ignore
+    ([key, value]) => (internalSalesVisit[key] = value)
+  );
 
   resetDirtyState();
 });
 
 const [updating, updateSalesVisit] = useLoadingState(async () => {
-  if (!salesVisit.value || !salesVisitOutletId.value) {
+  if (!salesVisit.value) {
     return;
   }
 
   await client.salesVisit.saveSalesVisit.mutate({
     ...salesVisit.value,
-    startTime: salesVisitStartDate.value,
-    endTime: salesVisitEndDate.value,
-    outletId: salesVisitOutletId.value,
+    ...internalSalesVisit,
   });
+
   await refresh();
 });
 
@@ -87,18 +92,24 @@ onMounted(refresh);
           <v-card-title> Sales Visit Details</v-card-title>
           <v-card-text>
             <br-form ref="form">
+              <br-text
+                v-model="internalSalesVisit.reference"
+                label="Reference"
+                :rules="[required]"
+                :loading="loading"
+              />
               <br-date
-                v-model="salesVisitStartDate"
+                v-model="internalSalesVisit.startTime"
                 label="Visit Start Date"
                 :loading="loading"
               />
               <br-date
-                v-model="salesVisitEndDate"
+                v-model="internalSalesVisit.endTime"
                 label="Journey End Date"
                 :loading="loading"
               />
               <br-dropdown
-                v-model="salesVisitOutletId"
+                v-model="internalSalesVisit.outletId"
                 :item-title="(item: Outlet) => item.name"
                 :item-value="(item: Outlet) => item.id"
                 label="Outlet"

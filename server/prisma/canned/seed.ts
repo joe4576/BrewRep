@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import generateTenantData from "./tenants";
 import generateTaskData from "./tasks";
 import generateOutletData from "./outlets";
-import genenrateSalesVisitsData from "./salesVisits";
+import generateSalesVisitData from "./salesVisits";
 
 const prisma = new PrismaClient();
 
@@ -22,7 +22,7 @@ async function main() {
   await generateTenantData(prisma);
   await generateTaskData(prisma);
   await generateOutletData(prisma);
-  await genenrateSalesVisitsData(prisma);
+  await generateSalesVisitData(prisma);
 }
 
 main().catch((e) => {

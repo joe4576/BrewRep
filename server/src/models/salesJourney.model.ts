@@ -10,6 +10,7 @@ export const salesJourneyValidator = z.object({
   endMilage: z.number().default(0),
   completed: z.boolean(),
   inProgress: z.boolean(),
+  reference: z.string(),
 });
 
 export type SalesJourney = z.infer<typeof salesJourneyValidator>;

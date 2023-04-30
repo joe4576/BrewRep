@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useLoadingState from "@/composables/useLoadingState";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, reactive, ref, toRef } from "vue";
 import { SalesJourney } from "@server/models/salesJourney.model";
 import { client } from "@/api/client";
 import BrPage from "@/components/base/BrPage.vue";
@@ -15,6 +15,7 @@ import BrGrid from "@/components/grid/BrGrid.vue";
 import { Outlet } from "@server/models/outlet.model";
 import ButtonBar from "@/components/ButtonBar.vue";
 import { useRouter } from "vue-router";
+import { useValidationRules } from "@/composables/useValidationRules";
 
 type SalesJourneyAndVisit = SalesJourney & {
   salesVisits: SalesVisit[];
@@ -27,18 +28,34 @@ interface ViewSalesJourneyProps {
 const props = defineProps<ViewSalesJourneyProps>();
 
 const salesJourney = ref<SalesJourneyAndVisit>();
-const salesJourneyDate = ref<Date>(new Date());
 const outlets = ref<Outlet[]>([]);
 
+const internalSalesJourney = reactive<SalesJourney>({
+  reference: "",
+  assignedUserId: "",
+  inProgress: false,
+  completed: false,
+  tenantId: "",
+  date: new Date(),
+  id: "",
+  endMilage: 0,
+  startMilage: 0,
+});
+
 const { form } = useFormValidation();
-const { isDirty, resetDirtyState } = useDirtyState(salesJourneyDate);
+const { required } = useValidationRules();
+const { isDirty, resetDirtyState } = useDirtyState(ref(internalSalesJourney));
 const router = useRouter();
 
 const [loading, refresh] = useLoadingState(async () => {
   salesJourney.value = await client.salesJourney.getSalesJourney.query(
     props.salesJourneyId
   );
-  salesJourneyDate.value = salesJourney.value?.date;
+
+  Object.entries(salesJourney.value).forEach(
+    // @ts-ignore
+    ([key, value]) => (internalSalesJourney[key] = value)
+  );
 
   outlets.value = await client.outlet.getOutlets.query(
     salesJourney.value?.salesVisits?.map((visit) => visit.outletId) ?? []
@@ -54,8 +71,9 @@ const [updating, updateSalesJourney] = useLoadingState(async () => {
 
   await client.salesJourney.saveSalesJourney.mutate({
     ...salesJourney.value,
-    date: salesJourneyDate.value,
+    ...internalSalesJourney,
   });
+  await refresh();
 });
 
 const salesJourneyStatus = computed(() => {
@@ -75,6 +93,7 @@ const salesJourneyStatus = computed(() => {
 });
 
 const gridConfiguration = new GridConfigurationBuilder<SalesVisit>()
+  .addTextColumn("Reference", (item) => item.reference)
   .addTextColumn(
     "Outlet",
     (item) =>
@@ -104,8 +123,14 @@ onMounted(refresh);
           <v-card-title> Sales Journey Details</v-card-title>
           <v-card-text>
             <br-form ref="form">
+              <br-text
+                v-model="internalSalesJourney.reference"
+                label="Reference"
+                :rules="[required]"
+                :loading="loading"
+              />
               <br-date
-                v-model="salesJourneyDate"
+                v-model="internalSalesJourney.date"
                 label="Journey Start Date"
                 :loading="loading"
               />

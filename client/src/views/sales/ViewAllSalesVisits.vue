@@ -41,6 +41,7 @@ const openSalesVisit = async (item: SalesVisit) => {
 };
 
 const gridConfiguration = new GridConfigurationBuilder<SalesVisitAndJourney>()
+  .addTextColumn("Reference", (item) => item.reference)
   .addTextColumn(
     "Outlet Name",
     (item) =>
