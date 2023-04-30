@@ -47,7 +47,26 @@ export const salesVisitRouter = router({
         throw new TRPCError({
           code: "BAD_REQUEST",
           cause: e,
-          message: "Failed to save sales journey",
+          message: "Failed to save sales visit",
+        });
+      }
+    }),
+
+  createSalesVisit: tenantProcedure
+    .input(salesVisitValidator)
+    .mutation(async ({ input, ctx }) => {
+      const salesVisitService = new SalesVisitService(ctx.tenant.id!);
+
+      try {
+        return await salesVisitService.createSalesVisit({
+          ...input,
+          tenantId: ctx.tenant.id!,
+        });
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to create sales visit",
         });
       }
     }),

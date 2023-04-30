@@ -12,7 +12,9 @@ interface BrDialogProps {
 
 interface BrDialogEmits {
   (e: "update:modelValue", v: boolean): void;
+
   (e: "accept", v: any): void;
+
   (e: "cancel", v: void): void;
 }
 
@@ -68,6 +70,7 @@ const closeDialog = (isActive: Ref<boolean>) => {
           variant="text"
           color="primary"
           :disabled="loading"
+          :loading="loading"
           @click="$emit('accept')"
         >
           {{ confirmText }}
