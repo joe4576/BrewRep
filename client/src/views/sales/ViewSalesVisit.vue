@@ -13,6 +13,7 @@ import { Outlet } from "@server/models/outlet.model";
 import useDirtyState from "@/composables/useDirtyState";
 import BrDropdown from "@/components/input/BrDropdown.vue";
 import { useValidationRules } from "@/composables/useValidationRules";
+import ButtonBar from "@/components/ButtonBar.vue";
 
 type SalesVisitAndJourney = SalesVisit & {
   salesJourney: SalesJourney | null;
@@ -26,6 +27,7 @@ const props = defineProps<ViewSalesJourneyProps>();
 
 const salesVisit = ref<SalesVisitAndJourney>();
 const outlets = ref<Outlet[]>([]);
+const salesJourneys = ref<SalesJourney[]>([]);
 
 const internalSalesVisit = reactive<SalesVisit>({
   endTime: new Date(),
@@ -44,9 +46,10 @@ const { isDirty, resetDirtyState } = useDirtyState(ref(internalSalesVisit));
 const router = useRouter();
 
 const [loading, refresh] = useLoadingState(async () => {
-  [salesVisit.value, outlets.value] = await Promise.all([
+  [salesVisit.value, outlets.value, salesJourneys.value] = await Promise.all([
     client.salesVisit.getSalesVisit.query(props.salesVisitId),
     client.outlet.getAllOutlets.query(),
+    client.salesJourney.getAllSalesJourneys.query(),
   ]);
 
   Object.entries(salesVisit.value).forEach(
@@ -117,20 +120,47 @@ onMounted(refresh);
               />
             </br-form>
           </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <br-btn
-              variant="text"
-              :disabled="!isDirty || updating"
-              :loading="loading || updating"
-              color="primary"
-              @click="updateSalesVisit"
-            >
-              Update
-            </br-btn>
-          </v-card-actions>
+        </v-card>
+      </v-col>
+      <v-col cols="12" sm="6">
+        <v-card :loading="loading">
+          <v-card-title>Journey Details</v-card-title>
+          <v-card-text>
+            <br-dropdown
+              v-model="internalSalesVisit.salesJourneyId"
+              :loading="loading"
+              label="Assign to journey"
+              :items="salesJourneys"
+              :item-title="(item: SalesJourney) => item.reference"
+              :item-value="(item: SalesJourney) => item.id"
+              clearable
+            />
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
+    <template #footer>
+      <button-bar>
+        <template #right>
+          <br-btn
+            secondary
+            :disabled="!internalSalesVisit.salesJourneyId"
+            :to="{
+              path: `/sales/journeys/${internalSalesVisit.salesJourneyId}`,
+            }"
+          >
+            Go to Journey
+          </br-btn>
+          <br-btn
+            class="ml-2"
+            color="primary"
+            :disabled="loading || !isDirty || updating"
+            @click="updateSalesVisit"
+          >
+            Update
+          </br-btn>
+        </template>
+      </button-bar>
+    </template>
   </br-page>
 </template>
