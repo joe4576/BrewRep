@@ -48,6 +48,10 @@ const menuItems: MenuItem[] = [
         title: "Journeys",
         to: "/sales/journeys",
       },
+      {
+        title: "Visits",
+        to: "/sales/visits",
+      },
     ],
   },
   {

@@ -163,11 +163,7 @@ onMounted(refresh);
           >
             Finish Journey
           </br-btn>
-          <br-btn
-            v-else="salesJourney?.inProgress"
-            color="primary"
-            :disabled="loading"
-          >
+          <br-btn v-else color="primary" :disabled="loading">
             Start Journey
           </br-btn>
         </template>

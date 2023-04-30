@@ -1,5 +1,5 @@
 import prisma from "../../prismaClient";
-import { SalesJourney } from "../models/salesJourney.model";
+import { SalesVisit } from "../models/salesJourney.model";
 import { SalesVisit } from "../models/salesVisit.model";
 import { BaseService } from "./baseService";
 
@@ -38,7 +38,7 @@ export class SalesJourneyService extends BaseService {
     return journey;
   }
 
-  public async saveSalesJourney(journey: SalesJourney) {
+  public async saveSalesJourney(journey: SalesVisit) {
     if (journey.tenantId !== this.tenantId) {
       throw new Error("Tenant ids don't match");
     }
@@ -51,7 +51,7 @@ export class SalesJourneyService extends BaseService {
     });
   }
 
-  public async createSalesJourney(journey: SalesJourney) {
+  public async createSalesJourney(journey: SalesVisit) {
     if (journey.tenantId !== this.tenantId) {
       throw new Error("Tenant ids don't match");
     }
@@ -63,22 +63,22 @@ export class SalesJourneyService extends BaseService {
     return newJourney;
   }
 
-  public async startJourney(journey: SalesJourney, startMilage: number) {
+  public async startJourney(journey: SalesVisit, startMilage: number) {
     throw new Error("Not implemented");
   }
 
-  public async endJourney(journey: SalesJourney) {
+  public async endJourney(journey: SalesVisit) {
     throw new Error("Not implemented");
   }
 
   public async addSalesVisitToJourney(
-    journey: SalesJourney,
+    journey: SalesVisit,
     salesVisit: SalesVisit
   ) {
     throw new Error("Not implemented");
   }
 
-  public async completeJourney(journey: SalesJourney) {
+  public async completeJourney(journey: SalesVisit) {
     // Once a journey has been completed, it is locked.
     // sales visits are marked as complete manually.
     // once a journey is locked, no changes can be made.

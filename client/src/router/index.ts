@@ -134,6 +134,25 @@ const routes: RouteRecordRaw[] = [
       salesJourneyId: route.params.id,
     }),
   },
+  {
+    path: "/sales/visits",
+    name: "sales-visits",
+    component: () =>
+      import(
+        /* webpackChunkName: "sales" */ "@/views/sales/ViewAllSalesVisits.vue"
+      ),
+  },
+  {
+    path: "/sales/visits/:id",
+    name: "view-sales-visit",
+    component: () =>
+      import(
+        /* webpackChunkName: "sales" */ "@/views/sales/ViewSalesVisit.vue"
+      ),
+    props: (route) => ({
+      salesVisitId: route.params.id,
+    }),
+  },
 ];
 
 const router = createRouter({

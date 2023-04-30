@@ -24,6 +24,9 @@ export class SalesVisitService extends BaseService {
           id: salesVisitId,
         },
       },
+      include: {
+        salesJourney: true,
+      },
     });
 
     if (!visit) {
