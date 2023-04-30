@@ -16,6 +16,7 @@ import { Outlet } from "@server/models/outlet.model";
 import ButtonBar from "@/components/ButtonBar.vue";
 import { useRouter } from "vue-router";
 import { useValidationRules } from "@/composables/useValidationRules";
+import CreateSalesVisitDialog from "@/components/sales/CreateSalesVisitDialog.vue";
 
 type SalesJourneyAndVisit = SalesJourney & {
   salesVisits: SalesVisit[];
@@ -29,6 +30,7 @@ const props = defineProps<ViewSalesJourneyProps>();
 
 const salesJourney = ref<SalesJourneyAndVisit>();
 const outlets = ref<Outlet[]>([]);
+const showCreateSalesVisitDialog = ref(false);
 
 const internalSalesJourney = reactive<SalesJourney>({
   reference: "",
@@ -48,17 +50,14 @@ const { isDirty, resetDirtyState } = useDirtyState(ref(internalSalesJourney));
 const router = useRouter();
 
 const [loading, refresh] = useLoadingState(async () => {
-  salesJourney.value = await client.salesJourney.getSalesJourney.query(
-    props.salesJourneyId
-  );
+  [salesJourney.value, outlets.value] = await Promise.all([
+    client.salesJourney.getSalesJourney.query(props.salesJourneyId),
+    client.outlet.getAllOutlets.query(),
+  ]);
 
   Object.entries(salesJourney.value).forEach(
     // @ts-ignore
     ([key, value]) => (internalSalesJourney[key] = value)
-  );
-
-  outlets.value = await client.outlet.getOutlets.query(
-    salesJourney.value?.salesVisits?.map((visit) => visit.outletId) ?? []
   );
 
   resetDirtyState();
@@ -170,7 +169,11 @@ onMounted(refresh);
             <br-subtitle>Visits on Journey</br-subtitle>
           </v-col>
           <v-col cols="auto">
-            <br-btn color="primary" :disabled="loading">
+            <br-btn
+              color="primary"
+              :disabled="loading"
+              @click="showCreateSalesVisitDialog = true"
+            >
               Add Visit
               <v-icon icon="mdi-plus-circle-outline" class="ml-2" />
             </br-btn>
@@ -207,4 +210,12 @@ onMounted(refresh);
       </button-bar>
     </template>
   </br-page>
+  <create-sales-visit-dialog
+    v-if="showCreateSalesVisitDialog && salesJourney"
+    v-model="showCreateSalesVisitDialog"
+    :sales-journeys="[salesJourney]"
+    creating-from-visit
+    :outlets="outlets"
+    @accept="refresh"
+  />
 </template>

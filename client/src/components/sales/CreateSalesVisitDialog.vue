@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BrDialog from "@/components/dialogs/BrDialog.vue";
 import useModelValue from "@/composables/useModelValue";
-import { reactive } from "vue";
+import { computed, reactive, watch } from "vue";
 import { SalesVisit } from "@server/models/salesVisit.model";
 import { useUserStore } from "@/store/userStore";
 import { v4 as uuid } from "uuid";
@@ -19,6 +19,7 @@ interface ConfirmationDialogProps {
   modelValue: boolean;
   outlets: Outlet[];
   salesJourneys: SalesJourney[];
+  creatingFromVisit?: boolean;
 }
 
 interface ConfirmationDialogEmits {
@@ -58,6 +59,18 @@ const [creating, createSalesVisit] = useLoadingState(async () => {
   emit("accept");
   model.value = false;
 });
+
+watch(
+  () => props.salesJourneys,
+  (val) => {
+    if (val.length >= 1 && props.creatingFromVisit) {
+      internalSalesVisit.salesJourneyId = props.salesJourneys[0].id;
+    }
+  },
+  {
+    immediate: true,
+  }
+);
 </script>
 
 <template>
@@ -99,7 +112,8 @@ const [creating, createSalesVisit] = useLoadingState(async () => {
         :items="salesJourneys"
         :item-title="(item: SalesJourney) => item.reference"
         :item-value="(item: SalesJourney) => item.id"
-        clearable
+        :readonly="creatingFromVisit"
+        :clearable="!creatingFromVisit"
       />
     </br-form>
   </br-dialog>
