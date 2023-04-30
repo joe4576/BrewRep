@@ -10,6 +10,7 @@ import { tenantRouter } from "./routers/tenant.router";
 import { taskRouter } from "./routers/task.router";
 import { outletRouter } from "./routers/outlet.router";
 import { salesJourneyRouter } from "./routers/salesJourney.router";
+import { salesVisitRouter } from "./routers/salesVisit.router.ts";
 
 export const appRouter = router({
   user: userRouter,
@@ -18,6 +19,7 @@ export const appRouter = router({
   task: taskRouter,
   outlet: outletRouter,
   salesJourney: salesJourneyRouter,
+  salesVisit: salesVisitRouter,
 });
 
 export type AppRouter = typeof appRouter;

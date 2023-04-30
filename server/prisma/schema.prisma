@@ -60,16 +60,22 @@ model CommunicationLog {
   salesVisitId String?
 }
 
+enum SalesVisitStatus {
+  OPEN
+  COMPLETE
+}
+
 model SalesVisit {
   tenantId          String
   id                String             @id @default(uuid())
-  startTime         DateTime?
-  endTime           DateTime?
+  startTime         DateTime
+  endTime           DateTime
   outlet            Outlet             @relation(fields: [outletId], references: [id], onDelete: Cascade)
   outletId          String
   communicationLogs CommunicationLog[]
   salesJourney      SalesJourney?      @relation(fields: [salesJourneyId], references: [id], onDelete: SetNull)
   salesJourneyId    String?
+  status            SalesVisitStatus   @default(OPEN)
 }
 
 model SalesJourney {

@@ -2,7 +2,12 @@ import { ActionConfigurationBuilder } from "@/components/grid/actionConfiguratio
 
 type PropertyExtractor<T, U> = (item: T) => U;
 
-export type CellRenderer = "text" | "boolean" | "date" | "actions";
+export type CellRenderer =
+  | "text"
+  | "boolean"
+  | "date"
+  | "actions"
+  | "date-time";
 
 export type GridConfiguration<T> = Record<string, ColumnConfiguration<T>>;
 
@@ -48,6 +53,20 @@ export class GridConfigurationBuilder<T extends object> {
       extractor,
       renderer: {
         type: "date",
+      },
+    };
+
+    return this;
+  }
+
+  addDateTimeColumn(
+    columnHeader: string,
+    extractor: PropertyExtractor<T, Date>
+  ) {
+    this._gridConfiguration[columnHeader] = {
+      extractor,
+      renderer: {
+        type: "date-time",
       },
     };
 

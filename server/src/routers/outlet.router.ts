@@ -1,6 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { Outlet, outletValidator } from "../models/outlet.model";
-import { uuidValidator } from "../models/validators/commonValidators";
+import {
+  uuidArrayValidator,
+  uuidValidator,
+} from "../models/validators/commonValidators";
 import { OutletService } from "../services/outletService";
 import { router, tenantProcedure } from "../trpc";
 
@@ -58,6 +61,28 @@ export const outletRouter = router({
 
     return outlets;
   }),
+
+  getOutlets: tenantProcedure
+    .input(uuidArrayValidator)
+    .query(async ({ ctx, input }) => {
+      const { tenant } = ctx;
+
+      const outletService = new OutletService(tenant.id!);
+
+      let outlets: Outlet[] = [];
+
+      try {
+        outlets = await outletService.getOutlets(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to get outlets",
+        });
+      }
+
+      return outlets;
+    }),
 
   saveOutlet: tenantProcedure
     .input(outletValidator)

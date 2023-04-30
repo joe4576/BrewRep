@@ -4,13 +4,16 @@ import {
   uuidValidator,
 } from "./validators/commonValidators";
 
+const salesVisitStatus = ["OPEN", "COMPLETE"] as const;
+
 export const salesVisitValidator = z.object({
   tenantId: uuidValidator,
   id: uuidValidator,
-  startTime: z.date().optional(),
-  endTime: z.date().optional(),
+  startTime: z.date(),
+  endTime: z.date(),
   outletId: uuidValidator,
   salesJourneyId: optionalUuidValidator,
+  status: z.enum(salesVisitStatus).default("OPEN"),
 });
 
 export type SalesVisit = z.infer<typeof salesVisitValidator>;

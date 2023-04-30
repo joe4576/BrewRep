@@ -8,6 +8,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
 import { AgGridVue } from "ag-grid-vue3";
 import { ref, watch } from "vue";
+import DateTimeColumnRenderer from "@/components/grid/renderers/DateTimeColumnRenderer.vue";
 
 interface BrGridProps<T> {
   items: T[];
@@ -43,6 +44,10 @@ watch(
 
         if (renderer.type === "date") {
           colDef.cellRenderer = DateColumnRenderer;
+        }
+
+        if (renderer.type === "date-time") {
+          colDef.cellRenderer = DateTimeColumnRenderer;
         }
 
         if (renderer.type === "actions") {

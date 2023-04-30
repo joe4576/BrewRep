@@ -8,6 +8,17 @@ import BrForm from "@/components/input/BrForm.vue";
 import { useFormValidation } from "@/composables/useFormValidation";
 import BrDate from "@/components/input/specialised/BrDate.vue";
 import useDirtyState from "@/composables/useDirtyState";
+import { SalesVisit } from "@server/models/salesVisit.model";
+import BrSubtitle from "@/components/text/BrSubtitle.vue";
+import { GridConfigurationBuilder } from "@/components/grid/gridConfigurationBuilder";
+import BrGrid from "@/components/grid/BrGrid.vue";
+import { Outlet } from "@server/models/outlet.model";
+import ButtonBar from "@/components/ButtonBar.vue";
+import { useRouter } from "vue-router";
+
+type SalesJourneyAndVisit = SalesJourney & {
+  salesVisits: SalesVisit[];
+};
 
 interface ViewSalesJourneyProps {
   salesJourneyId: string;
@@ -15,17 +26,24 @@ interface ViewSalesJourneyProps {
 
 const props = defineProps<ViewSalesJourneyProps>();
 
-const salesJourney = ref<SalesJourney>();
+const salesJourney = ref<SalesJourneyAndVisit>();
 const salesJourneyDate = ref<Date>(new Date());
+const outlets = ref<Outlet[]>([]);
 
 const { form } = useFormValidation();
 const { isDirty, resetDirtyState } = useDirtyState(salesJourneyDate);
+const router = useRouter();
 
 const [loading, refresh] = useLoadingState(async () => {
   salesJourney.value = await client.salesJourney.getSalesJourney.query(
     props.salesJourneyId
   );
   salesJourneyDate.value = salesJourney.value?.date;
+
+  outlets.value = await client.outlet.getOutlets.query(
+    salesJourney.value?.salesVisits?.map((visit) => visit.outletId) ?? []
+  );
+
   resetDirtyState();
 });
 
@@ -56,6 +74,22 @@ const salesJourneyStatus = computed(() => {
   return "Pending";
 });
 
+const gridConfiguration = new GridConfigurationBuilder<SalesVisit>()
+  .addTextColumn(
+    "Outlet",
+    (item) =>
+      outlets.value.find((outlet) => outlet.id === item.outletId)?.name ?? "-"
+  )
+  .addDateTimeColumn("Start time", (item) => item.startTime)
+  .addDateTimeColumn("End time", (item) => item.endTime)
+  .addTextColumn("Status", (item) => item.status)
+  .addActionsColumn((builder) => {
+    builder.addRoutingAction("View", (item) => ({
+      name: "home",
+    }));
+  })
+  .build();
+
 onMounted(refresh);
 </script>
 
@@ -70,7 +104,11 @@ onMounted(refresh);
           <v-card-title> Sales Journey Details</v-card-title>
           <v-card-text>
             <br-form ref="form">
-              <br-date v-model="salesJourneyDate" :loading="loading" />
+              <br-date
+                v-model="salesJourneyDate"
+                label="Journey Start Date"
+                :loading="loading"
+              />
             </br-form>
           </v-card-text>
           <v-card-actions>
@@ -88,5 +126,44 @@ onMounted(refresh);
         </v-card>
       </v-col>
     </v-row>
+    <v-row>
+      <v-col cols="12">
+        <v-row class="justify-space-between">
+          <v-col cols="auto">
+            <br-subtitle>Visits on Journey</br-subtitle>
+          </v-col>
+          <v-col cols="auto">
+            <br-btn color="primary">
+              Add Visit
+              <v-icon icon="mdi-plus-circle-outline" class="ml-2" />
+            </br-btn>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-col cols="12">
+        <br-grid
+          :grid-configuration="gridConfiguration"
+          :items="salesJourney?.salesVisits ?? []"
+          :loading="loading"
+          @row-clicked="
+            $router.push({
+              name: 'home',
+            })
+          "
+        />
+      </v-col>
+    </v-row>
+    <template #footer>
+      <button-bar>
+        <template #right>
+          <br-btn v-if="salesJourney?.inProgress" color="primary">
+            Finish Journey
+          </br-btn>
+          <br-btn v-else="salesJourney?.inProgress" color="primary">
+            Start Journey
+          </br-btn>
+        </template>
+      </button-bar>
+    </template>
   </br-page>
 </template>
