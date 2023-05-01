@@ -65,10 +65,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import(/* webpackChunkName: "home" */ "@/views/Home.vue"),
   },
   {
-    path: "/planner",
+    path: "/calendar",
     name: "planner",
     component: () =>
-      import(/* webpackChunkName: "planner" */ "@/views/planner/Planner.vue"),
+      import(
+        /* webpackChunkName: "calendar" */ "@/views/calendar/Calendar.vue"
+      ),
   },
   {
     path: "/tasks",
