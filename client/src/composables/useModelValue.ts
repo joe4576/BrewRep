@@ -3,7 +3,7 @@ import { computed } from "vue";
 /**
  * Handles two-way data binding from inside components.
  *
- * @param value Funtion to get value, likely `() => props.modelValue`
+ * @param value Function to get value, likely `() => props.modelValue`
  * @param emitFn Emit function, e.g. emit from `const emit = defineEmits()`
  * @param event Event name to emit updated value
  */

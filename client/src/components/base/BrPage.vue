@@ -25,5 +25,8 @@ defineProps<BrPageProps>();
         </v-row>
       </v-col>
     </v-row>
+    <portal to="footer" v-if="$slots['footer']">
+      <slot name="footer" />
+    </portal>
   </v-container>
 </template>

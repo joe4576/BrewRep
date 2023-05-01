@@ -41,6 +41,20 @@ const menuItems: MenuItem[] = [
     to: "/tasks",
   },
   {
+    title: "Sales",
+    prependIcon: "mdi-face-agent",
+    subMenuItems: [
+      {
+        title: "Journeys",
+        to: "/sales/journeys",
+      },
+      {
+        title: "Visits",
+        to: "/sales/visits",
+      },
+    ],
+  },
+  {
     title: "Outlets",
     prependIcon: "mdi-cart",
     to: "/outlets",

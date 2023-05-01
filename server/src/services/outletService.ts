@@ -58,6 +58,21 @@ export class OutletService extends BaseService {
     return outlets;
   }
 
+  public async getOutlets(outletIds: string[]) {
+    const outlets = await prisma.outlet.findMany({
+      where: {
+        tenantId: this.tenantId,
+        AND: {
+          id: {
+            in: outletIds,
+          },
+        },
+      },
+    });
+
+    return outlets;
+  }
+
   public async saveOutlet(outlet: Outlet) {
     if (outlet.tenantId !== this.tenantId) {
       throw new Error("Tenant ids don't match");

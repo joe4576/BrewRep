@@ -1,3 +1,4 @@
 node_modules
 dist
 src/config/brewrep-fyp-firebase-adminsdk-key.json
+.DS_Store

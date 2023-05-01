@@ -2,7 +2,10 @@ import { TRPCError } from "@trpc/server";
 import { userValidator } from "../models/user.model";
 import { UserService } from "../services/userService";
 import { protectedProcedure, router, tenantProcedure } from "../trpc";
-import { uuidValidator } from "../models/validators/commonValidators";
+import {
+  uuidArrayValidator,
+  uuidValidator,
+} from "../models/validators/commonValidators";
 
 export const userRouter = router({
   getAllUsers: tenantProcedure.query(async ({ ctx }) => {
@@ -64,6 +67,22 @@ export const userRouter = router({
           code: "BAD_REQUEST",
           cause: e,
           message: "User not added to the tenant",
+        });
+      }
+    }),
+
+  getUsers: tenantProcedure
+    .input(uuidArrayValidator)
+    .query(async ({ input, ctx }) => {
+      const userService = new UserService(ctx.tenant.id!);
+
+      try {
+        return await userService.getUsers(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to get users",
         });
       }
     }),
