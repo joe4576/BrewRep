@@ -61,6 +61,7 @@ model CommunicationLog {
   authorId     String
   outlet       Outlet      @relation(fields: [outletId], references: [id], onDelete: Cascade)
   outletId     String
+  createdDate  DateTime    @default(now())
 }
 
 enum SalesVisitStatus {

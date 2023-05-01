@@ -18,6 +18,7 @@ import { CommunicationLog } from "@server/models/communicationLog.model";
 import { User } from "@server/models/user.model";
 import BrSubtitle from "@/components/text/BrSubtitle.vue";
 import CommunicationLogs from "@/components/sales/CommunicationLogs.vue";
+import CreateCommunicationLogDialog from "@/components/sales/CreateCommunicationLogDialog.vue";
 
 type SalesVisitAndJourney = SalesVisit & {
   salesJourney: SalesJourney | null;
@@ -34,6 +35,7 @@ const outlets = ref<Outlet[]>([]);
 const salesJourneys = ref<SalesJourney[]>([]);
 const communicationLogs = ref<CommunicationLog[]>([]);
 const users = ref<User[]>([]);
+const showCreateCommunicationLogDialog = ref(false);
 
 const internalSalesVisit = reactive<SalesVisit>({
   endTime: new Date(),
@@ -151,6 +153,19 @@ onMounted(refresh);
               clearable
             />
           </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <br-btn
+              color="primary"
+              variant="text"
+              :disabled="!internalSalesVisit.salesJourneyId"
+              :to="{
+                path: `/sales/journeys/${internalSalesVisit.salesJourneyId}`,
+              }"
+            >
+              Go to Journey
+            </br-btn>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
@@ -168,14 +183,8 @@ onMounted(refresh);
     <template #footer>
       <button-bar>
         <template #right>
-          <br-btn
-            secondary
-            :disabled="!internalSalesVisit.salesJourneyId"
-            :to="{
-              path: `/sales/journeys/${internalSalesVisit.salesJourneyId}`,
-            }"
-          >
-            Go to Journey
+          <br-btn secondary @click="showCreateCommunicationLogDialog = true">
+            Log Communication
           </br-btn>
           <br-btn
             class="ml-2"
@@ -189,4 +198,13 @@ onMounted(refresh);
       </button-bar>
     </template>
   </br-page>
+  <create-communication-log-dialog
+    v-if="showCreateCommunicationLogDialog"
+    v-model="showCreateCommunicationLogDialog"
+    :sales-visit="salesVisit"
+    :outlets="outlets"
+    :users="users"
+    creating-from-sales-visit
+    @accept="refresh"
+  />
 </template>

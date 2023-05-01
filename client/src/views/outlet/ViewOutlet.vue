@@ -13,6 +13,8 @@ import { v4 as uuid } from "uuid";
 import { CommunicationLog } from "@server/models/communicationLog.model";
 import { User } from "@server/models/user.model";
 import CommunicationLogs from "@/components/sales/CommunicationLogs.vue";
+import CreateCommunicationLogDialog from "@/components/sales/CreateCommunicationLogDialog.vue";
+import ButtonBar from "@/components/ButtonBar.vue";
 
 interface ViewOutletProps {
   outletId: string;
@@ -27,6 +29,7 @@ const userStore = useUserStore();
 const outlet = ref<Outlet>();
 const communicationLogs = ref<CommunicationLog[]>([]);
 const users = ref<User[]>([]);
+const showCreateCommunicationLogDialog = ref(false);
 
 const internalOutlet = reactive<Outlet>({
   name: "",
@@ -127,5 +130,25 @@ onMounted(refresh);
         />
       </v-col>
     </v-row>
+    <template #footer>
+      <button-bar>
+        <template #right>
+          <br-btn
+            color="primary"
+            @click="showCreateCommunicationLogDialog = true"
+          >
+            Log Communication
+          </br-btn>
+        </template>
+      </button-bar>
+    </template>
   </br-page>
+  <create-communication-log-dialog
+    v-if="showCreateCommunicationLogDialog && outlet"
+    v-model="showCreateCommunicationLogDialog"
+    :outlets="[outlet]"
+    :users="users"
+    creating-from-outlet
+    @accept="refresh"
+  />
 </template>

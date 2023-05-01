@@ -11,6 +11,9 @@ export class CommunicationLogService extends BaseService {
           tenantId: this.tenantId,
         },
       },
+      orderBy: {
+        createdDate: "desc",
+      },
     });
 
     return logs;
@@ -21,7 +24,7 @@ export class CommunicationLogService extends BaseService {
       throw new Error("Tenant ids don't match");
     }
 
-    const existingLog = await prisma.communicationLog.findFirstOrThrow({
+    const existingLog = await prisma.communicationLog.findFirst({
       where: {
         id: log.id,
       },
