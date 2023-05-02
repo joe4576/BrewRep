@@ -62,6 +62,10 @@ const gridConfiguration = new GridConfigurationBuilder<SalesVisitAndJourney>()
       outlets.value.find((outlet) => outlet.id === item.outletId)?.name ?? "-"
   )
   .addTextColumn(
+    "Journey Reference",
+    (item) => item.salesJourney?.reference ?? "-"
+  )
+  .addTextColumn(
     "Assigned to user",
     (item) =>
       users.value?.find((user) => user.id === item.salesJourney?.assignedUserId)
