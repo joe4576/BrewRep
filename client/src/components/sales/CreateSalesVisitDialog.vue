@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BrDialog from "@/components/dialogs/BrDialog.vue";
 import useModelValue from "@/composables/useModelValue";
-import { computed, reactive, watch } from "vue";
+import { reactive, watch } from "vue";
 import { SalesVisit } from "@server/models/salesVisit.model";
 import { useUserStore } from "@/store/userStore";
 import { v4 as uuid } from "uuid";
@@ -20,6 +20,7 @@ interface ConfirmationDialogProps {
   outlets: Outlet[];
   salesJourneys: SalesJourney[];
   creatingFromVisit?: boolean;
+  outletId?: string | null;
 }
 
 interface ConfirmationDialogEmits {
@@ -43,7 +44,7 @@ const internalSalesVisit = reactive<SalesVisit>({
   reference: "",
   status: "OPEN",
   startTime: new Date(),
-  outletId: "",
+  outletId: props.outletId ?? "",
   id: uuid(),
   salesJourneyId: null,
   tenantId: userStore.tenantId ?? "",

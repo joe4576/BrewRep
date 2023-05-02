@@ -42,4 +42,24 @@ export const communicationLogsRouter = router({
         });
       }
     }),
+
+  getCommunicationLogsForSalesVisit: tenantProcedure
+    .input(uuidValidator)
+    .query(async ({ input, ctx }) => {
+      const communicationLogService = new CommunicationLogService(
+        ctx.tenant.id!
+      );
+
+      try {
+        return await communicationLogService.getCommunicationLogsForSalesVisit(
+          input
+        );
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to get communication logs for sales visit",
+        });
+      }
+    }),
 });

@@ -17,7 +17,7 @@ import ButtonBar from "@/components/ButtonBar.vue";
 import { CommunicationLog } from "@server/models/communicationLog.model";
 import { User } from "@server/models/user.model";
 import BrSubtitle from "@/components/text/BrSubtitle.vue";
-import CommunicationLogs from "@/components/sales/CommunicationLogs.vue";
+import ViewCommunicationLogs from "@/components/sales/ViewCommunicationLogs.vue";
 import CreateCommunicationLogDialog from "@/components/sales/CreateCommunicationLogDialog.vue";
 
 type SalesVisitAndJourney = SalesVisit & {
@@ -102,7 +102,7 @@ onMounted(refresh);
 </script>
 
 <template>
-  <br-page title="Sales Visit">
+  <br-page title="Sales Visit" show-back-button>
     <template #summary>
       {{ salesVisitStatus }}
     </template>
@@ -174,7 +174,7 @@ onMounted(refresh);
         <br-subtitle>Communication logs</br-subtitle>
       </v-col>
       <v-col cols="12" md="6">
-        <communication-logs
+        <view-communication-logs
           :communication-logs="communicationLogs"
           :users="users"
         />

@@ -2,6 +2,7 @@
 interface BrPageProps {
   title: string;
   loading?: boolean;
+  showBackButton?: boolean;
 }
 
 defineProps<BrPageProps>();
@@ -12,6 +13,11 @@ defineProps<BrPageProps>();
     <v-row>
       <v-col cols="12">
         <v-row class="justify-space-between">
+          <v-col v-if="showBackButton" cols="12" class="ma-0 pa-0">
+            <br-btn variant="plain" color="primary" @click="$router.back">
+              &lt; Go Back
+            </br-btn>
+          </v-col>
           <v-col cols="auto">
             <v-progress-circular v-if="loading" indeterminate />
             <h4 v-else class="text-h4">{{ title }}</h4>

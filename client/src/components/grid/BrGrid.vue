@@ -25,6 +25,19 @@ defineEmits<BrGridEmits<any>>();
 
 const columnDefs = ref<ColDef[]>([]);
 
+const dateComparer = (dateA: Date, dateB: Date) => {
+  const millisecondsA = dateA.getTime();
+  const millisecondsB = dateB.getTime();
+
+  if (millisecondsA > millisecondsB) {
+    return 1;
+  } else if (millisecondsA < millisecondsB) {
+    return -1;
+  } else {
+    return 0;
+  }
+};
+
 watch(
   () => props.gridConfiguration,
   (config) => {
@@ -44,10 +57,12 @@ watch(
 
         if (renderer.type === "date") {
           colDef.cellRenderer = DateColumnRenderer;
+          colDef.comparator = dateComparer;
         }
 
         if (renderer.type === "date-time") {
           colDef.cellRenderer = DateTimeColumnRenderer;
+          colDef.comparator = dateComparer;
         }
 
         if (renderer.type === "actions") {

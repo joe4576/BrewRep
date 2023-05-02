@@ -12,7 +12,7 @@ import { useUserStore } from "@/store/userStore";
 import { v4 as uuid } from "uuid";
 import { CommunicationLog } from "@server/models/communicationLog.model";
 import { User } from "@server/models/user.model";
-import CommunicationLogs from "@/components/sales/CommunicationLogs.vue";
+import ViewCommunicationLogs from "@/components/sales/ViewCommunicationLogs.vue";
 import CreateCommunicationLogDialog from "@/components/sales/CreateCommunicationLogDialog.vue";
 import ButtonBar from "@/components/ButtonBar.vue";
 
@@ -76,7 +76,11 @@ onMounted(refresh);
 </script>
 
 <template>
-  <br-page :title="`Outlet: ${outlet?.name ?? '-'}`" :loading="loading">
+  <br-page
+    :title="`Outlet: ${outlet?.name ?? '-'}`"
+    :loading="loading"
+    show-back-button
+  >
     <v-row>
       <v-col cols="12" md="6">
         <v-card :loading="loading">
@@ -124,7 +128,7 @@ onMounted(refresh);
         <br-subtitle>Communication Logs</br-subtitle>
       </v-col>
       <v-col cols="12" md="6">
-        <communication-logs
+        <view-communication-logs
           :communication-logs="communicationLogs"
           :users="users"
         />

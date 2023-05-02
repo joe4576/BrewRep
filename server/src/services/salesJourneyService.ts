@@ -26,7 +26,11 @@ export class SalesJourneyService extends BaseService {
         },
       },
       include: {
-        salesVisits: true,
+        salesVisits: {
+          orderBy: {
+            startTime: "asc",
+          },
+        },
       },
     });
 
@@ -40,21 +44,6 @@ export class SalesJourneyService extends BaseService {
   public async saveSalesJourney(journey: SalesJourney) {
     if (journey.tenantId !== this.tenantId) {
       throw new Error("Tenant ids don't match");
-    }
-
-    const journeysWithReference = await prisma.salesJourney.findMany({
-      where: {
-        reference: journey.reference,
-        AND: {
-          tenantId: this.tenantId,
-        },
-      },
-    });
-
-    if (journeysWithReference.length) {
-      throw new Error(
-        `Journey with reference ${journey.reference} already exists`
-      );
     }
 
     await prisma.salesJourney.update({
@@ -85,6 +74,69 @@ export class SalesJourneyService extends BaseService {
     return journey;
   }
 
+  public async addVisitToSalesJourney(visitId: string, salesJourneyId: string) {
+    const visit = await prisma.salesVisit.findFirst({
+      where: {
+        tenantId: this.tenantId,
+        AND: {
+          id: visitId,
+        },
+      },
+    });
+
+    if (!visit) {
+      throw new Error("Visit not found");
+    }
+
+    if (visit.salesJourneyId) {
+      throw new Error("Visit is already on a journey");
+    }
+
+    const updatedVisit = await prisma.salesVisit.update({
+      where: {
+        id: visitId,
+      },
+      data: {
+        salesJourney: {
+          connect: {
+            id: salesJourneyId,
+          },
+        },
+      },
+    });
+
+    return updatedVisit;
+  }
+
+  public async completeVisit(visitId: string, journeyId: string) {
+    const visit = await prisma.salesVisit.findFirst({
+      where: {
+        tenantId: this.tenantId,
+        AND: {
+          id: visitId,
+        },
+      },
+    });
+
+    if (
+      visit?.salesJourneyId !== journeyId ||
+      this.tenantId !== visit.tenantId
+    ) {
+      throw new Error("Visit is not on journey");
+    }
+
+    const updatedVisit = await prisma.salesVisit.update({
+      where: {
+        id: visitId,
+      },
+      data: {
+        status: "COMPLETE",
+      },
+    });
+
+    return updatedVisit;
+  }
+
   public async createSalesJourney(journey: SalesJourney) {
     if (journey.tenantId !== this.tenantId) {
       throw new Error("Tenant ids don't match");
@@ -97,28 +149,41 @@ export class SalesJourneyService extends BaseService {
     return newJourney;
   }
 
-  public async startJourney(journey: SalesJourney, startMilage: number) {
-    throw new Error("Not implemented");
-  }
+  public async completeJourney(journeyId: string) {
+    const journey = await prisma.salesJourney.findFirst({
+      where: {
+        tenantId: this.tenantId,
+        AND: {
+          id: journeyId,
+        },
+      },
+    });
 
-  public async endJourney(journey: SalesJourney) {
-    throw new Error("Not implemented");
-  }
+    if (!journey) {
+      throw new Error("Journey not found");
+    }
 
-  public async addSalesVisitToJourney(
-    journey: SalesJourney,
-    salesVisit: SalesJourney
-  ) {
-    throw new Error("Not implemented");
-  }
+    // Mark all visits as complete
+    const updatedJourney = await prisma.salesJourney.update({
+      where: {
+        id: journeyId,
+      },
+      data: {
+        completed: true,
+        inProgress: false,
+        salesVisits: {
+          updateMany: {
+            where: {
+              salesJourneyId: journeyId,
+            },
+            data: {
+              status: "COMPLETE",
+            },
+          },
+        },
+      },
+    });
 
-  public async completeJourney(journey: SalesJourney) {
-    // Once a journey has been completed, it is locked.
-    // sales visits are marked as complete manually.
-    // once a journey is locked, no changes can be made.
-    // also, to complete a journey, start and end milage must be given.
-
-    // TODO - add JourneyStatus enum = {pending, in progress, complete}
-    throw new Error("Not implemented");
+    return updatedJourney;
   }
 }

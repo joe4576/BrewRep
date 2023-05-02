@@ -12,6 +12,7 @@ defineEmits<{
 
 <template>
   <v-btn
+    v-bind="$attrs"
     :class="{
       secondary: secondary,
     }"

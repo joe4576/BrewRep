@@ -75,4 +75,70 @@ export const salesJourneyRouter = router({
         });
       }
     }),
+
+  addVisitToSalesJourney: tenantProcedure
+    .input(
+      z.object({
+        salesVisitId: uuidValidator,
+        salesJourneyId: uuidValidator,
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const salesJourneyService = new SalesJourneyService(ctx.tenant.id!);
+      const { salesJourneyId, salesVisitId } = input;
+
+      try {
+        return await salesJourneyService.addVisitToSalesJourney(
+          salesVisitId,
+          salesJourneyId
+        );
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to add visit to journey",
+        });
+      }
+    }),
+
+  completeVisit: tenantProcedure
+    .input(
+      z.object({
+        salesVisitId: uuidValidator,
+        salesJourneyId: uuidValidator,
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const salesJourneyService = new SalesJourneyService(ctx.tenant.id!);
+      const { salesJourneyId, salesVisitId } = input;
+
+      try {
+        return await salesJourneyService.completeVisit(
+          salesVisitId,
+          salesJourneyId
+        );
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to complete visit",
+        });
+      }
+    }),
+
+  completeJourney: tenantProcedure
+    .input(uuidValidator)
+    .mutation(async ({ input, ctx }) => {
+      const salesJourneyService = new SalesJourneyService(ctx.tenant.id!);
+
+      try {
+        return await salesJourneyService.completeJourney(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to complete journey",
+        });
+      }
+    }),
 });

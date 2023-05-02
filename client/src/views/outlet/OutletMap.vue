@@ -17,6 +17,7 @@ const markers = computed((): Marker[] =>
     long: outlet.long,
     label: outlet.name,
     entityId: outlet.id,
+    color: "green",
   }))
 );
 
