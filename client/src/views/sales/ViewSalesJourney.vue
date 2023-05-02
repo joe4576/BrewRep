@@ -271,6 +271,7 @@ onMounted(refresh);
             @click="
               showMapView = !showMapView;
               showAddVisitSnackbar = false;
+              selectedOutletIdFromMap = null;
             "
           >
             {{ showMapView ? "Close" : "Open" }} Map 🌍
