@@ -108,21 +108,22 @@ const gridConfiguration = new GridConfigurationBuilder<SalesVisit>()
   .addDateTimeColumn("End time", (item) => item.endTime)
   .addTextColumn("Status", (item) => item.status)
   .addActionsColumn((builder) => {
-    builder.addRoutingAction("View", (item) => ({
-      path: `/sales/visits/${item.id}`,
-    }));
-    builder.addClickAction("Remove Visit", async (item) => {
-      if (!item.salesJourneyId) {
-        return;
-      }
+    builder
+      .addRoutingAction("View", (item) => ({
+        path: `/sales/visits/${item.id}`,
+      }))
+      .addClickAction("Remove Visit", async (item) => {
+        if (!item.salesJourneyId) {
+          return;
+        }
 
-      await client.salesJourney.removeVisitFromSalesJourney.mutate({
-        salesJourneyId: item.salesJourneyId,
-        salesVisitId: item.id,
+        await client.salesJourney.removeVisitFromSalesJourney.mutate({
+          salesJourneyId: item.salesJourneyId,
+          salesVisitId: item.id,
+        });
+
+        await refresh();
       });
-
-      await refresh();
-    });
   })
   .build();
 
