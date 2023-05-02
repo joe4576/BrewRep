@@ -40,4 +40,20 @@ export class CommunicationLogService extends BaseService {
 
     return newLog;
   }
+
+  public async getCommunicationLogsForSalesVisit(salesVisitId: string) {
+    const logs = await prisma.communicationLog.findMany({
+      where: {
+        tenantId: this.tenantId,
+        AND: {
+          salesVisitId,
+        },
+      },
+      orderBy: {
+        createdDate: "desc",
+      },
+    });
+
+    return logs;
+  }
 }

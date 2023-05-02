@@ -19,6 +19,7 @@ import { useValidationRules } from "@/composables/useValidationRules";
 import CreateSalesVisitDialog from "@/components/sales/CreateSalesVisitDialog.vue";
 import AddExistingVisitDialog from "@/components/sales/AddExistingVisitDialog.vue";
 import BrMap, { Marker } from "@/components/map/BrMap.vue";
+import InProgressVisit from "@/views/sales/InProgressVisit.vue";
 
 type SalesJourneyAndVisit = SalesJourney & {
   salesVisits: SalesVisit[];
@@ -38,6 +39,7 @@ const showAddExistingVisitDialog = ref(false);
 const showMapView = ref(false);
 const selectedOutletIdFromMap = ref<string | null>(null);
 const showAddVisitSnackbar = ref(false);
+const currentVisit = ref<SalesVisit>();
 
 const internalSalesJourney = reactive<SalesJourney>({
   reference: "",
@@ -86,6 +88,15 @@ const [updating, updateSalesJourney] = useLoadingState(async () => {
   });
   await refresh();
 });
+
+const startJourney = async () => {
+  internalSalesJourney.inProgress = true;
+  await updateSalesJourney();
+};
+
+const journeyInProgress = computed(
+  () => salesJourney.value?.inProgress ?? false
+);
 
 const salesJourneyStatus = computed(() => {
   if (!salesJourney.value) {
@@ -151,11 +162,14 @@ onMounted(refresh);
 </script>
 
 <template>
-  <br-page title="Sales Journey" show-back-button>
+  <br-page title="Sales Journey" show-back-button :loading="loading">
     <template #summary>
       {{ salesJourneyStatus }}
     </template>
-    <template v-if="!showMapView">
+    <template v-if="journeyInProgress">
+      <in-progress-visit :sales-journey-id="salesJourney.id" />
+    </template>
+    <template v-else-if="!showMapView">
       <v-row>
         <v-col cols="12" sm="6">
           <v-card :loading="loading">
@@ -267,6 +281,7 @@ onMounted(refresh);
       <button-bar>
         <template #right>
           <br-btn
+            v-if="!journeyInProgress"
             secondary
             @click="
               showMapView = !showMapView;
@@ -277,14 +292,21 @@ onMounted(refresh);
             {{ showMapView ? "Close" : "Open" }} Map 🌍
           </br-btn>
           <br-btn
-            v-if="salesJourney?.inProgress"
+            v-if="journeyInProgress"
             class="ml-2"
             color="primary"
             :disabled="loading"
           >
             Finish Journey
           </br-btn>
-          <br-btn v-else class="ml-2" color="primary" :disabled="loading">
+          <br-btn
+            v-else
+            class="ml-2"
+            color="primary"
+            :disabled="loading"
+            :loading="updating"
+            @click="startJourney"
+          >
             Start Journey
           </br-btn>
         </template>

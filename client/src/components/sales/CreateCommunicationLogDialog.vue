@@ -46,6 +46,7 @@ const internalCommunicationLog = reactive<CommunicationLog>({
   authorId: userStore.user?.id ?? "",
   outletId: "",
   salesVisitId: null,
+  createdDate: new Date(),
 });
 
 const [creating, createCommunicationLog] = useLoadingState(async () => {
