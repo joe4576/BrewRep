@@ -85,6 +85,40 @@ export class SalesJourneyService extends BaseService {
     return journey;
   }
 
+  public async addVisitToSalesJourney(visitId: string, salesJourneyId: string) {
+    const visit = await prisma.salesVisit.findFirst({
+      where: {
+        tenantId: this.tenantId,
+        AND: {
+          id: visitId,
+        },
+      },
+    });
+
+    if (!visit) {
+      throw new Error("Visit not found");
+    }
+
+    if (visit.salesJourneyId) {
+      throw new Error("Visit is already on a journey");
+    }
+
+    const updatedVisit = await prisma.salesVisit.update({
+      where: {
+        id: visitId,
+      },
+      data: {
+        salesJourney: {
+          connect: {
+            id: salesJourneyId,
+          },
+        },
+      },
+    });
+
+    return updatedVisit;
+  }
+
   public async createSalesJourney(journey: SalesJourney) {
     if (journey.tenantId !== this.tenantId) {
       throw new Error("Tenant ids don't match");
@@ -102,13 +136,6 @@ export class SalesJourneyService extends BaseService {
   }
 
   public async endJourney(journey: SalesJourney) {
-    throw new Error("Not implemented");
-  }
-
-  public async addSalesVisitToJourney(
-    journey: SalesJourney,
-    salesVisit: SalesJourney
-  ) {
     throw new Error("Not implemented");
   }
 

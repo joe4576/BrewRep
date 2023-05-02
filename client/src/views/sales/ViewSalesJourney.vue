@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useLoadingState from "@/composables/useLoadingState";
-import { computed, onMounted, reactive, ref, toRef } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { SalesJourney } from "@server/models/salesJourney.model";
 import { client } from "@/api/client";
 import BrPage from "@/components/base/BrPage.vue";
@@ -17,6 +17,7 @@ import ButtonBar from "@/components/ButtonBar.vue";
 import { useRouter } from "vue-router";
 import { useValidationRules } from "@/composables/useValidationRules";
 import CreateSalesVisitDialog from "@/components/sales/CreateSalesVisitDialog.vue";
+import AddExistingVisitDialog from "@/components/sales/AddExistingVisitDialog.vue";
 
 type SalesJourneyAndVisit = SalesJourney & {
   salesVisits: SalesVisit[];
@@ -29,8 +30,10 @@ interface ViewSalesJourneyProps {
 const props = defineProps<ViewSalesJourneyProps>();
 
 const salesJourney = ref<SalesJourneyAndVisit>();
+const allSalesVisits = ref<SalesVisit[]>([]);
 const outlets = ref<Outlet[]>([]);
 const showCreateSalesVisitDialog = ref(false);
+const showAddExistingVisitDialog = ref(false);
 
 const internalSalesJourney = reactive<SalesJourney>({
   reference: "",
@@ -50,10 +53,13 @@ const { isDirty, resetDirtyState } = useDirtyState(ref(internalSalesJourney));
 const router = useRouter();
 
 const [loading, refresh] = useLoadingState(async () => {
-  [salesJourney.value, outlets.value] = await Promise.all([
-    client.salesJourney.getSalesJourney.query(props.salesJourneyId),
-    client.outlet.getAllOutlets.query(),
-  ]);
+  [salesJourney.value, outlets.value, allSalesVisits.value] = await Promise.all(
+    [
+      client.salesJourney.getSalesJourney.query(props.salesJourneyId),
+      client.outlet.getAllOutlets.query(),
+      client.salesVisit.getAllSalesVisits.query(),
+    ]
+  );
 
   Object.entries(salesJourney.value).forEach(
     // @ts-ignore
@@ -170,11 +176,20 @@ onMounted(refresh);
           </v-col>
           <v-col cols="auto">
             <br-btn
+              secondary
+              :disabled="loading"
+              @click="showAddExistingVisitDialog = true"
+            >
+              Add existing visit
+              <v-icon icon="mdi-plus-circle-outline" class="ml-2" />
+            </br-btn>
+            <br-btn
+              class="ml-2"
               color="primary"
               :disabled="loading"
               @click="showCreateSalesVisitDialog = true"
             >
-              Add Visit
+              Create Visit
               <v-icon icon="mdi-plus-circle-outline" class="ml-2" />
             </br-btn>
           </v-col>
@@ -216,6 +231,13 @@ onMounted(refresh);
     :sales-journeys="[salesJourney]"
     creating-from-visit
     :outlets="outlets"
+    @accept="refresh"
+  />
+  <add-existing-visit-dialog
+    v-if="showAddExistingVisitDialog && salesJourney"
+    v-model="showAddExistingVisitDialog"
+    :sales-visits="allSalesVisits"
+    :sales-journey="salesJourney"
     @accept="refresh"
   />
 </template>
