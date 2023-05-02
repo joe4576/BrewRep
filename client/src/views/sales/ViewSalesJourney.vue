@@ -19,7 +19,7 @@ import { useValidationRules } from "@/composables/useValidationRules";
 import CreateSalesVisitDialog from "@/components/sales/CreateSalesVisitDialog.vue";
 import AddExistingVisitDialog from "@/components/sales/AddExistingVisitDialog.vue";
 import BrMap, { Marker } from "@/components/map/BrMap.vue";
-import InProgressVisit from "@/views/sales/InProgressVisit.vue";
+import InProgressJourney from "@/views/sales/InProgressJourney.vue";
 
 type SalesJourneyAndVisit = SalesJourney & {
   salesVisits: SalesVisit[];
@@ -94,9 +94,28 @@ const startJourney = async () => {
   await updateSalesJourney();
 };
 
+const finishJourney = async () => {
+  if (!salesJourney.value?.id) {
+    return;
+  }
+
+  // get updated journey
+  salesJourney.value = await client.salesJourney.getSalesJourney.query(
+    salesJourney.value.id
+  );
+
+  // update journey
+  await client.salesJourney.completeJourney.mutate(salesJourney.value.id);
+
+  // refresh
+  await refresh();
+};
+
 const journeyInProgress = computed(
   () => salesJourney.value?.inProgress ?? false
 );
+
+const journeyComplete = computed(() => salesJourney.value?.completed ?? false);
 
 const salesJourneyStatus = computed(() => {
   if (!salesJourney.value) {
@@ -139,6 +158,10 @@ const gridConfiguration = new GridConfigurationBuilder<SalesVisit>()
   .addDateTimeColumn("End time", (item) => item.endTime)
   .addTextColumn("Status", (item) => item.status)
   .addActionsColumn((builder) => {
+    if (journeyComplete.value) {
+      return;
+    }
+
     builder
       .addRoutingAction("View", (item) => ({
         path: `/sales/visits/${item.id}`,
@@ -166,8 +189,24 @@ onMounted(refresh);
     <template #summary>
       {{ salesJourneyStatus }}
     </template>
-    <template v-if="journeyInProgress">
-      <in-progress-visit :sales-journey-id="salesJourney.id" />
+    <template v-if="journeyComplete">
+      <p>
+        This journey had been completed. This is a list of all the visits that
+        were completed on this journey.
+      </p>
+      <br-grid
+        :grid-configuration="gridConfiguration"
+        :items="salesJourney?.salesVisits ?? []"
+        :loading="loading"
+        @row-clicked="
+          $router.push({
+            path: `/sales/visits/${$event.id}`,
+          })
+        "
+      />
+    </template>
+    <template v-else-if="journeyInProgress">
+      <in-progress-journey :sales-journey-id="salesJourney.id" />
     </template>
     <template v-else-if="!showMapView">
       <v-row>
@@ -281,7 +320,7 @@ onMounted(refresh);
       <button-bar>
         <template #right>
           <br-btn
-            v-if="!journeyInProgress"
+            v-if="!journeyInProgress && !journeyComplete"
             secondary
             @click="
               showMapView = !showMapView;
@@ -296,11 +335,12 @@ onMounted(refresh);
             class="ml-2"
             color="primary"
             :disabled="loading"
+            @click="finishJourney"
           >
             Finish Journey
           </br-btn>
           <br-btn
-            v-else
+            v-if="!journeyComplete && !journeyInProgress"
             class="ml-2"
             color="primary"
             :disabled="loading"

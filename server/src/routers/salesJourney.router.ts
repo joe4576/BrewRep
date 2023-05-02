@@ -125,4 +125,20 @@ export const salesJourneyRouter = router({
         });
       }
     }),
+
+  completeJourney: tenantProcedure
+    .input(uuidValidator)
+    .mutation(async ({ input, ctx }) => {
+      const salesJourneyService = new SalesJourneyService(ctx.tenant.id!);
+
+      try {
+        return await salesJourneyService.completeJourney(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to complete journey",
+        });
+      }
+    }),
 });

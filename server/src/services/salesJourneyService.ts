@@ -149,17 +149,41 @@ export class SalesJourneyService extends BaseService {
     return newJourney;
   }
 
-  public async endJourney(journey: SalesJourney) {
-    throw new Error("Not implemented");
-  }
+  public async completeJourney(journeyId: string) {
+    const journey = await prisma.salesJourney.findFirst({
+      where: {
+        tenantId: this.tenantId,
+        AND: {
+          id: journeyId,
+        },
+      },
+    });
 
-  public async completeJourney(journey: SalesJourney) {
-    // Once a journey has been completed, it is locked.
-    // sales visits are marked as complete manually.
-    // once a journey is locked, no changes can be made.
-    // also, to complete a journey, start and end milage must be given.
+    if (!journey) {
+      throw new Error("Journey not found");
+    }
 
-    // TODO - add JourneyStatus enum = {pending, in progress, complete}
-    throw new Error("Not implemented");
+    // Mark all visits as complete
+    const updatedJourney = await prisma.salesJourney.update({
+      where: {
+        id: journeyId,
+      },
+      data: {
+        completed: true,
+        inProgress: false,
+        salesVisits: {
+          updateMany: {
+            where: {
+              salesJourneyId: journeyId,
+            },
+            data: {
+              status: "COMPLETE",
+            },
+          },
+        },
+      },
+    });
+
+    return updatedJourney;
   }
 }
