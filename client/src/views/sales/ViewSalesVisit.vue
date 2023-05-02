@@ -102,7 +102,7 @@ onMounted(refresh);
 </script>
 
 <template>
-  <br-page title="Sales Visit">
+  <br-page title="Sales Visit" show-back-button>
     <template #summary>
       {{ salesVisitStatus }}
     </template>

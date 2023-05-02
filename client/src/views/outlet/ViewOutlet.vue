@@ -76,7 +76,11 @@ onMounted(refresh);
 </script>
 
 <template>
-  <br-page :title="`Outlet: ${outlet?.name ?? '-'}`" :loading="loading">
+  <br-page
+    :title="`Outlet: ${outlet?.name ?? '-'}`"
+    :loading="loading"
+    show-back-button
+  >
     <v-row>
       <v-col cols="12" md="6">
         <v-card :loading="loading">
