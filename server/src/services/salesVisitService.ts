@@ -53,19 +53,6 @@ export class SalesVisitService extends BaseService {
       throw new Error("Tenant ids don't match");
     }
 
-    const visitsWithReference = await prisma.salesVisit.findMany({
-      where: {
-        reference: visit.reference,
-        AND: {
-          tenantId: this.tenantId,
-        },
-      },
-    });
-
-    if (visitsWithReference.length > 1) {
-      throw new Error(`Visit with reference ${visit.reference} already exists`);
-    }
-
     await prisma.salesVisit.update({
       data: visit,
       where: {
