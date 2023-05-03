@@ -93,8 +93,6 @@ export class OutletService extends BaseService {
       throw new Error("Tenant ids don't match");
     }
 
-    // TODO: add logic to check for user permissions
-
     await prisma.outlet.delete({
       where: {
         id: outlet.id,

@@ -23,9 +23,14 @@ const gridConfiguration = new GridConfigurationBuilder<Outlet>()
   .addTextColumn("Outlet name", (item) => item.name)
   .addTextColumn("Outlet code", (item) => item.code)
   .addActionsColumn((builder) =>
-    builder.addRoutingAction("View", (item) => ({
-      path: "/outlets/" + item.id,
-    }))
+    builder
+      .addRoutingAction("View", (item) => ({
+        path: "/outlets/" + item.id,
+      }))
+      .addClickAction("Delete", async (item) => {
+        await client.outlet.deleteOutlet.mutate(item);
+        await refresh();
+      })
   )
   .build();
 
