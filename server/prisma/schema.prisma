@@ -29,15 +29,16 @@ model Tenant {
 }
 
 model Task {
-  tenantId         String
-  id               String   @id @default(uuid())
-  user             User     @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
-  createdByUserId  String
-  assignedToUserId String?
-  dateCreated      DateTime @default(now())
-  dateDue          DateTime
-  description      String   @default("")
-  completed        Boolean  @default(false)
+  tenantId             String
+  id                   String   @id @default(uuid())
+  user                 User     @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  createdByUserId      String
+  assignedToUserId     String?
+  assignedSalesVisitId String?
+  dateCreated          DateTime @default(now())
+  dateDue              DateTime
+  description          String   @default("")
+  completed            Boolean  @default(false)
 }
 
 model Outlet {

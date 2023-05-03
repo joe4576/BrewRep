@@ -49,18 +49,27 @@ export class TaskService extends BaseService {
   }
 
   public async getTasksByFilter(taskFilter: TaskFilter) {
-    const { assignedToUserId, createdByUserId } = taskFilter;
+    const { assignedToUserId, createdByUserId, assignedSalesVisitId } =
+      taskFilter;
+
+    const whereClause: Partial<Task> = {
+      tenantId: this.tenantId,
+    };
+
+    if (assignedToUserId) {
+      whereClause.assignedToUserId = assignedToUserId;
+    }
+
+    if (createdByUserId) {
+      whereClause.createdByUserId = createdByUserId;
+    }
+
+    if (assignedSalesVisitId) {
+      whereClause.assignedSalesVisitId = assignedSalesVisitId;
+    }
 
     const tasks = await prisma.task.findMany({
-      where: {
-        tenantId: this.tenantId,
-        AND: {
-          assignedToUserId: assignedToUserId ?? undefined,
-          AND: {
-            createdByUserId: createdByUserId ?? undefined,
-          },
-        },
-      },
+      where: whereClause,
     });
 
     return tasks;
@@ -95,8 +104,6 @@ export class TaskService extends BaseService {
     if (task.tenantId !== this.tenantId) {
       throw new Error("Tenant ids don't match");
     }
-
-    // TODO: add logic to check for user permissions
 
     await prisma.task.delete({
       where: {

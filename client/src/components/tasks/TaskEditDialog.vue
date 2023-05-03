@@ -5,10 +5,12 @@ import { Task } from "@server/models/task.model";
 import { User } from "@server/models/user.model";
 import cloneDeep from "lodash.clonedeep";
 import { computed, onMounted, ref } from "vue";
+import { SalesVisit } from "@server/models/salesVisit.model";
 
 interface TaskEditDialogProps {
   task: Task;
   users: User[];
+  salesVisits: SalesVisit[];
   isCreating?: boolean;
 }
 
@@ -75,6 +77,31 @@ const [loadingDelete, deleteTask] = useLoadingState(async () => {
           :item-value="(item: User) => item.id"
           label="Assign to user"
         />
+      </v-col>
+      <v-col cols="12" class="py-0">
+        <br-dropdown
+          v-model="internalTask.assignedSalesVisitId"
+          :items="salesVisits"
+          :disabled="salesVisits.length === 1"
+          :item-title="(item: SalesVisit) => item.reference"
+          :item-value="(item: SalesVisit) => item.id"
+          label="Associate with visit"
+          clearable
+        />
+      </v-col>
+      <v-col v-if="internalTask.assignedSalesVisitId" cols="12" class="py-0">
+        <br-btn
+          class="px-0"
+          variant="text"
+          color="primary"
+          @click="
+            $router.push({
+              path: `/sales/visits/${internalTask.assignedSalesVisitId}`,
+            })
+          "
+        >
+          Open Visit
+        </br-btn>
       </v-col>
       <v-col cols="12">
         <br-checkbox v-model="internalTask.completed" label="Completed?" />

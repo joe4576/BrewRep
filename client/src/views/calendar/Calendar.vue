@@ -11,9 +11,11 @@ import { eventIsTask } from "@/services/plannerService";
 import { Task } from "@server/models/task.model";
 import { User } from "@server/models/user.model";
 import { computed, onMounted, ref } from "vue";
+import { SalesVisit } from "@server/models/salesVisit.model";
 
 const tasks = ref<Task[]>([]);
 const users = ref<User[]>([]);
+const salesVisits = ref<SalesVisit[]>([]);
 const selectedTask = ref<Task>();
 const showEditTaskDialog = ref(false);
 const hideWeekends = ref(true);
@@ -23,6 +25,7 @@ const [refreshLoading, refresh] = useLoadingState(async () => {
   [tasks.value, users.value] = await Promise.all([
     client.task.getAllTasks.query(),
     client.user.getAllUsers.query(),
+    client.salesVisit.getAllSalesVisits.query(),
   ]);
 });
 
@@ -127,6 +130,7 @@ const eventSummaryItems: SummaryItem[] = [
     v-if="showEditTaskDialog && selectedTask"
     :task="selectedTask"
     :users="users"
+    :sales-visits="salesVisits"
     @accept="
       showEditTaskDialog = false;
       refresh();

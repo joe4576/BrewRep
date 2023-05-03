@@ -11,9 +11,11 @@ import { useUserStore } from "@/store/userStore";
 import { GridConfigurationBuilder } from "@/components/grid/gridConfigurationBuilder";
 import BrGrid from "@/components/grid/BrGrid.vue";
 import BrPage from "@/components/base/BrPage.vue";
+import { SalesVisit } from "@server/models/salesVisit.model";
 
 const tasks = ref<Task[]>([]);
 const users = ref<User[]>([]);
+const salesVisits = ref<SalesVisit[]>([]);
 const showTaskEditDialog = ref(false);
 const taskToEdit = ref<Task>();
 const isCreatingTask = ref(false);
@@ -21,9 +23,10 @@ const isCreatingTask = ref(false);
 const userStore = useUserStore();
 
 const [loading, refresh] = useLoadingState(async () => {
-  [tasks.value, users.value] = await Promise.all([
+  [tasks.value, users.value, salesVisits.value] = await Promise.all([
     client.task.getAllTasks.query(),
     client.user.getAllUsers.query(),
+    client.salesVisit.getAllSalesVisits.query(),
   ]);
 });
 
@@ -63,8 +66,31 @@ const gridConfiguration = new GridConfigurationBuilder<Task>()
         "-"
       : "-"
   )
+  .addTextColumn("Journey Reference", (item) =>
+    item.assignedSalesVisitId
+      ? salesVisits.value.find(
+          (visit) => visit.id === item.assignedSalesVisitId
+        )?.reference ?? "-"
+      : "-"
+  )
   .addDateColumn("Due date", (item) => item.dateDue)
   .addBooleanColumn("Completed?", (item) => item.completed)
+  .addActionsColumn((builder) => {
+    builder.addClickAction("Edit", openTaskEditDialog).addClickAction(
+      "Mark as Complete",
+      async (item) => {
+        await client.task.saveTask.mutate({
+          ...item,
+          completed: true,
+        });
+
+        await refresh();
+      },
+      {
+        visible: (item) => !item.completed,
+      }
+    );
+  })
   .build();
 
 onMounted(refresh);
@@ -94,6 +120,7 @@ onMounted(refresh);
     v-if="showTaskEditDialog && taskToEdit"
     :task="taskToEdit"
     :users="users"
+    :sales-visits="salesVisits"
     :is-creating="isCreatingTask"
     @accept="
       showTaskEditDialog = false;

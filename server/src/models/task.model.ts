@@ -13,11 +13,13 @@ export const taskValidator = z.object({
   dateDue: z.date(),
   description: z.string(),
   completed: z.boolean(),
+  assignedSalesVisitId: optionalUuidValidator,
 });
 
 export const taskFilterValidator = z.object({
   createdByUserId: optionalUuidValidator,
   assignedToUserId: optionalUuidValidator,
+  assignedSalesVisitId: optionalUuidValidator,
 });
 
 export type Task = z.infer<typeof taskValidator>;

@@ -19,6 +19,10 @@ import { User } from "@server/models/user.model";
 import BrSubtitle from "@/components/text/BrSubtitle.vue";
 import ViewCommunicationLogs from "@/components/sales/ViewCommunicationLogs.vue";
 import CreateCommunicationLogDialog from "@/components/sales/CreateCommunicationLogDialog.vue";
+import BrGrid from "@/components/grid/BrGrid.vue";
+import { GridConfigurationBuilder } from "@/components/grid/gridConfigurationBuilder";
+import { Task } from "@server/models/task.model";
+import TaskEditDialog from "@/components/tasks/TaskEditDialog.vue";
 
 type SalesVisitAndJourney = SalesVisit & {
   salesJourney: SalesJourney | null;
@@ -35,6 +39,9 @@ const outlets = ref<Outlet[]>([]);
 const salesJourneys = ref<SalesJourney[]>([]);
 const communicationLogs = ref<CommunicationLog[]>([]);
 const users = ref<User[]>([]);
+const tasks = ref<Task[]>([]);
+const taskToEdit = ref<Task>();
+const showTaskEditDialog = ref(false);
 const showCreateCommunicationLogDialog = ref(false);
 
 const internalSalesVisit = reactive<SalesVisit>({
@@ -54,13 +61,21 @@ const { isDirty, resetDirtyState } = useDirtyState(ref(internalSalesVisit));
 const router = useRouter();
 
 const [loading, refresh] = useLoadingState(async () => {
-  [salesVisit.value, outlets.value, salesJourneys.value, users.value] =
-    await Promise.all([
-      client.salesVisit.getSalesVisit.query(props.salesVisitId),
-      client.outlet.getAllOutlets.query(),
-      client.salesJourney.getAllSalesJourneys.query(),
-      client.user.getAllUsers.query(),
-    ]);
+  [
+    salesVisit.value,
+    outlets.value,
+    salesJourneys.value,
+    users.value,
+    tasks.value,
+  ] = await Promise.all([
+    client.salesVisit.getSalesVisit.query(props.salesVisitId),
+    client.outlet.getAllOutlets.query(),
+    client.salesJourney.getAllSalesJourneys.query(),
+    client.user.getAllUsers.query(),
+    client.task.getTaskByFilter.query({
+      assignedSalesVisitId: props.salesVisitId,
+    }),
+  ]);
 
   if (salesVisit.value?.outletId) {
     communicationLogs.value =
@@ -97,6 +112,38 @@ const salesVisitStatus = computed(() => {
 
   return salesVisit.value?.status ?? "-";
 });
+
+const tasksGridConfiguration = new GridConfigurationBuilder<Task>()
+  .addTextColumn("Description", (item) => item.description)
+  .addTextColumn("Assigned to", (item) =>
+    item.assignedToUserId
+      ? users.value.find((user) => user.id === item.assignedToUserId)?.name ??
+        "-"
+      : "-"
+  )
+  .addBooleanColumn("Completed?", (item) => item.completed)
+  .addActionsColumn((builder) => {
+    builder
+      .addClickAction("Edit", (item) => {
+        taskToEdit.value = item;
+        showTaskEditDialog.value = true;
+      })
+      .addClickAction(
+        "Mark as Complete",
+        async (item) => {
+          await client.task.saveTask.mutate({
+            ...item,
+            completed: true,
+          });
+
+          await refresh();
+        },
+        {
+          visible: (item) => !item.completed,
+        }
+      );
+  })
+  .build();
 
 onMounted(refresh);
 </script>
@@ -170,13 +217,19 @@ onMounted(refresh);
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="12">
-        <br-subtitle>Communication logs</br-subtitle>
-      </v-col>
       <v-col cols="12" md="6">
+        <br-subtitle>Communication logs</br-subtitle>
         <view-communication-logs
           :communication-logs="communicationLogs"
           :users="users"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <br-subtitle>Tasks</br-subtitle>
+        <br-grid
+          :grid-configuration="tasksGridConfiguration"
+          :items="tasks"
+          :loading="loading"
         />
       </v-col>
     </v-row>
@@ -206,5 +259,16 @@ onMounted(refresh);
     :users="users"
     creating-from-sales-visit
     @accept="refresh"
+  />
+  <task-edit-dialog
+    v-model="showTaskEditDialog"
+    v-if="showTaskEditDialog && taskToEdit && salesVisit"
+    :task="taskToEdit"
+    :users="users"
+    :sales-visits="[salesVisit]"
+    @accept="
+      showTaskEditDialog = false;
+      refresh();
+    "
   />
 </template>
