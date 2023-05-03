@@ -73,6 +73,7 @@ const gridConfiguration = new GridConfigurationBuilder<SalesVisitAndJourney>()
   )
   .addDateTimeColumn("Start time", (item) => item.startTime)
   .addDateTimeColumn("End time", (item) => item.endTime)
+  .addTextColumn("Status", (item) => item.status)
   .addActionsColumn((builder) => {
     builder
       .addRoutingAction("View", (item) => ({
