@@ -8,17 +8,20 @@ import { User } from "@server/models/user.model";
 import BrGrid from "@/components/grid/BrGrid.vue";
 import BrPage from "@/components/base/BrPage.vue";
 import { useRouter } from "vue-router";
+import ButtonBar from "@/components/ButtonBar.vue";
+import CreateSalesJourneyDialog from "@/components/sales/CreateSalesJourneyDialog.vue";
 
 const router = useRouter();
 
 const journeys = ref<SalesJourney[]>([]);
 const users = ref<User[]>([]);
+const showCreateSalesJourneyDialog = ref(false);
 
 const [loading, refresh] = useLoadingState(async () => {
-  journeys.value = await client.salesJourney.getAllSalesJourneys.query();
-  users.value = await client.user.getUsers.query(
-    journeys.value.map((journey) => journey.assignedUserId)
-  );
+  [journeys.value, users.value] = await Promise.all([
+    client.salesJourney.getAllSalesJourneys.query(),
+    client.user.getAllUsers.query(),
+  ]);
 });
 
 const openSalesJourney = async (item: SalesJourney) => {
@@ -54,5 +57,24 @@ onMounted(refresh);
       :loading="loading"
       @row-clicked="openSalesJourney"
     />
+    <template #footer>
+      <button-bar>
+        <template #right>
+          <br-btn
+            color="primary"
+            :disabled="loading"
+            @click="showCreateSalesJourneyDialog = true"
+          >
+            Create Journey
+          </br-btn>
+        </template>
+      </button-bar>
+    </template>
   </br-page>
+  <create-sales-journey-dialog
+    v-if="showCreateSalesJourneyDialog"
+    v-model="showCreateSalesJourneyDialog"
+    :users="users"
+    @accept="refresh"
+  />
 </template>

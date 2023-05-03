@@ -141,4 +141,20 @@ export const salesJourneyRouter = router({
         });
       }
     }),
+
+  createSalesJourney: tenantProcedure
+    .input(salesJourneyValidator)
+    .mutation(async ({ input, ctx }) => {
+      const salesJourneyService = new SalesJourneyService(ctx.tenant.id!);
+
+      try {
+        return await salesJourneyService.createSalesJourney(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to create journey",
+        });
+      }
+    }),
 });
