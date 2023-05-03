@@ -148,12 +148,34 @@ export const salesJourneyRouter = router({
       const salesJourneyService = new SalesJourneyService(ctx.tenant.id!);
 
       try {
-        return await salesJourneyService.createSalesJourney(input);
+        return await salesJourneyService.createSalesJourney({
+          ...input,
+          tenantId: ctx.tenant.id!,
+        });
       } catch (e) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           cause: e,
           message: "Failed to create journey",
+        });
+      }
+    }),
+
+  deleteSalesJourney: tenantProcedure
+    .input(salesJourneyValidator)
+    .mutation(async ({ input, ctx }) => {
+      const salesJourneyService = new SalesJourneyService(ctx.tenant.id!);
+
+      try {
+        return await salesJourneyService.deleteSalesJourney({
+          ...input,
+          tenantId: ctx.tenant.id!,
+        });
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to delete journey",
         });
       }
     }),

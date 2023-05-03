@@ -40,9 +40,14 @@ const gridConfiguration = new GridConfigurationBuilder<SalesJourney>()
   .addDateColumn("Date", (item) => item.date)
   .addBooleanColumn("Completed?", (item) => item.completed)
   .addActionsColumn((builder) => {
-    builder.addRoutingAction("View", (item) => ({
-      path: `/sales/journeys/${item.id}`,
-    }));
+    builder
+      .addRoutingAction("View", (item) => ({
+        path: `/sales/journeys/${item.id}`,
+      }))
+      .addClickAction("Delete", async (item) => {
+        await client.salesJourney.deleteSalesJourney.mutate(item);
+        await refresh();
+      });
   })
   .build();
 

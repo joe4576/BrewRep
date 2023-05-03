@@ -186,4 +186,16 @@ export class SalesJourneyService extends BaseService {
 
     return updatedJourney;
   }
+
+  public async deleteSalesJourney(journey: SalesJourney) {
+    if (journey.tenantId !== this.tenantId) {
+      throw new Error("Tenant ids don't match");
+    }
+
+    await prisma.salesJourney.delete({
+      where: {
+        id: journey.id,
+      },
+    });
+  }
 }
