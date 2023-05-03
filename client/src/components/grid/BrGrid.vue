@@ -99,8 +99,9 @@ const defaultColDef: ColDef = {
   <v-skeleton-loader v-if="loading" type="table-tbody" />
   <ag-grid-vue
     v-else
+    v-bind="$attrs"
     class="ag-theme-material"
-    style="height: 500px"
+    style="min-height: 500px; height: 100%"
     :columnDefs="columnDefs"
     :rowData="props.items"
     :defaultColDef="defaultColDef"

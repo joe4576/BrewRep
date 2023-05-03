@@ -10,6 +10,10 @@ import { User } from "@server/models/user.model";
 import ViewCommunicationLogs from "@/components/sales/ViewCommunicationLogs.vue";
 import CreateCommunicationLogDialog from "@/components/sales/CreateCommunicationLogDialog.vue";
 import { Outlet } from "@server/models/outlet.model";
+import { Task } from "@server/models/task.model";
+import { GridConfigurationBuilder } from "@/components/grid/gridConfigurationBuilder";
+import BrGrid from "@/components/grid/BrGrid.vue";
+import TaskEditDialog from "@/components/tasks/TaskEditDialog.vue";
 
 interface InProgressVisitProps {
   salesJourneyId: string;
@@ -24,7 +28,10 @@ const currentVisit = ref<SalesVisit>();
 const communicationLogs = ref<CommunicationLog[]>([]);
 const users = ref<User[]>([]);
 const showCreateCommunicationLogDialog = ref(false);
+const showTaskEditDialog = ref(false);
 const currentOutlet = ref<Outlet>();
+const tasks = ref<Task[]>([]);
+const taskToEdit = ref<Task>();
 
 const salesVisits = computed(() => salesJourney.value?.salesVisits ?? []);
 
@@ -52,12 +59,16 @@ const [loadingVisitExtras, loadVisitExtras] = useLoadingState(async () => {
     return;
   }
 
-  [communicationLogs.value, currentOutlet.value] = await Promise.all([
-    client.communicationLog.getCommunicationLogsForSalesVisit.query(
-      currentVisit.value.id
-    ),
-    client.outlet.getOutlet.query(currentVisit.value.outletId),
-  ]);
+  [communicationLogs.value, currentOutlet.value, tasks.value] =
+    await Promise.all([
+      client.communicationLog.getCommunicationLogsForSalesVisit.query(
+        currentVisit.value.id
+      ),
+      client.outlet.getOutlet.query(currentVisit.value.outletId),
+      client.task.getTaskByFilter.query({
+        assignedSalesVisitId: currentVisit.value.id,
+      }),
+    ]);
 });
 
 const [completingVisit, completeVisit] = useLoadingState(async () => {
@@ -74,6 +85,38 @@ const [completingVisit, completeVisit] = useLoadingState(async () => {
   await refresh();
 });
 
+const tasksGridConfiguration = new GridConfigurationBuilder<Task>()
+  .addTextColumn("Description", (item) => item.description)
+  .addTextColumn("Assigned to", (item) =>
+    item.assignedToUserId
+      ? users.value.find((user) => user.id === item.assignedToUserId)?.name ??
+        "-"
+      : "-"
+  )
+  .addBooleanColumn("Completed?", (item) => item.completed)
+  .addActionsColumn((builder) => {
+    builder
+      .addClickAction("Edit", (item) => {
+        taskToEdit.value = item;
+        showTaskEditDialog.value = true;
+      })
+      .addClickAction(
+        "Mark as Complete",
+        async (item) => {
+          await client.task.saveTask.mutate({
+            ...item,
+            completed: true,
+          });
+
+          await loadVisitExtras();
+        },
+        {
+          visible: (item) => !item.completed,
+        }
+      );
+  })
+  .build();
+
 watch(
   currentVisit,
   async () => {
@@ -86,7 +129,7 @@ onMounted(refresh);
 </script>
 
 <template>
-  <v-container class="mx-0">
+  <v-container class="mx-0 mb-10">
     <v-row
       :style="{
         height: $vuetify.display.mdAndUp ? '700px' : undefined,
@@ -174,6 +217,19 @@ onMounted(refresh);
                 />
               </v-col>
             </v-row>
+            <v-row>
+              <v-col cols="12">
+                <h6 class="text-h6">Tasks</h6>
+              </v-col>
+              <v-col cols="12">
+                <br-grid
+                  style="min-height: 200px"
+                  :grid-configuration="tasksGridConfiguration"
+                  :items="tasks"
+                  :loading="loadingVisitExtras"
+                />
+              </v-col>
+            </v-row>
           </v-card-text>
           <v-card-actions>
             <v-spacer />
@@ -199,6 +255,17 @@ onMounted(refresh);
     :sales-visit="currentVisit"
     creating-from-sales-visit
     @accept="refresh"
+  />
+  <task-edit-dialog
+    v-model="showTaskEditDialog"
+    v-if="showTaskEditDialog && taskToEdit && currentVisit"
+    :task="taskToEdit"
+    :users="users"
+    :sales-visits="[currentVisit]"
+    @accept="
+      showTaskEditDialog = false;
+      loadVisitExtras();
+    "
   />
 </template>
 
