@@ -81,7 +81,11 @@ const gridConfiguration = new GridConfigurationBuilder<SalesVisitAndJourney>()
       }))
       .addRoutingAction("Go to Outlet", (item) => ({
         path: `/outlets/${item.outletId}`,
-      }));
+      }))
+      .addClickAction("Delete", async (item) => {
+        await client.salesVisit.deleteSalesVisit.mutate(item);
+        await refresh();
+      });
   })
   .build();
 

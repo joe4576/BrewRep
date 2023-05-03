@@ -2,8 +2,6 @@ import { SalesVisitService } from "../services/salesVisitService";
 import { router, tenantProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { uuidValidator } from "../models/validators/commonValidators";
-import { SalesJourneyService } from "../services/salesJourneyService";
-import { salesJourneyValidator } from "../models/salesJourney.model";
 import { salesVisitValidator } from "../models/salesVisit.model";
 
 export const salesVisitRouter = router({
@@ -67,6 +65,25 @@ export const salesVisitRouter = router({
           code: "BAD_REQUEST",
           cause: e,
           message: "Failed to create sales visit",
+        });
+      }
+    }),
+
+  deleteSalesVisit: tenantProcedure
+    .input(salesVisitValidator)
+    .mutation(async ({ input, ctx }) => {
+      const salesVisitService = new SalesVisitService(ctx.tenant.id!);
+
+      try {
+        return await salesVisitService.deleteSalesVisit({
+          ...input,
+          tenantId: ctx.tenant.id!,
+        });
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to delete sales visit",
         });
       }
     }),

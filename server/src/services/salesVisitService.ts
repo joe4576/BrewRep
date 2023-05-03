@@ -60,4 +60,16 @@ export class SalesVisitService extends BaseService {
       },
     });
   }
+
+  public async deleteSalesVisit(visit: SalesVisit) {
+    if (visit.tenantId !== this.tenantId) {
+      throw new Error("Tenant ids don't match");
+    }
+
+    await prisma.salesVisit.delete({
+      where: {
+        id: visit.id,
+      },
+    });
+  }
 }
