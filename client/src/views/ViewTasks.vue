@@ -82,9 +82,6 @@ onMounted(refresh);
 
   <portal to="footer">
     <button-bar>
-      <template #left>
-        <br-btn>cancel</br-btn>
-      </template>
       <template #right>
         <br-btn color="primary" @click="openTaskEditDialog()">
           Add Task
