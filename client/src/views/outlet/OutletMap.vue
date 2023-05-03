@@ -12,13 +12,15 @@ const [loading, refresh] = useLoadingState(async () => {
 });
 
 const markers = computed((): Marker[] =>
-  outlets.value.map((outlet) => ({
-    lat: outlet.lat,
-    long: outlet.long,
-    label: outlet.name,
-    entityId: outlet.id,
-    color: "green",
-  }))
+  outlets.value
+    .filter((outlet) => outlet.lat && outlet.long)
+    .map((outlet) => ({
+      lat: outlet.lat,
+      long: outlet.long,
+      label: outlet.name,
+      entityId: outlet.id,
+      color: "green",
+    }))
 );
 
 onMounted(refresh);

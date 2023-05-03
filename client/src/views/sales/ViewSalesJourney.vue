@@ -134,17 +134,19 @@ const salesJourneyStatus = computed(() => {
 });
 
 const markers = computed((): Marker[] =>
-  outlets.value.map((outlet) => ({
-    lat: outlet.lat,
-    long: outlet.long,
-    label: outlet.name,
-    entityId: outlet.id,
-    color: salesJourney.value?.salesVisits
-      ?.map((visit) => visit.outletId)
-      ?.includes(outlet.id)
-      ? "green"
-      : "red",
-  }))
+  outlets.value
+    .filter((outlet) => outlet.lat && outlet.long)
+    .map((outlet) => ({
+      lat: outlet.lat,
+      long: outlet.long,
+      label: outlet.name,
+      entityId: outlet.id,
+      color: salesJourney.value?.salesVisits
+        ?.map((visit) => visit.outletId)
+        ?.includes(outlet.id)
+        ? "green"
+        : "red",
+    }))
 );
 
 const gridConfiguration = new GridConfigurationBuilder<SalesVisit>()

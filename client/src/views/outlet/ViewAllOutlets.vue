@@ -7,10 +7,13 @@ import useLoadingState from "@/composables/useLoadingState";
 import { Outlet } from "@server/models/outlet.model";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import ButtonBar from "@/components/ButtonBar.vue";
+import CreateOutletDialog from "@/components/outlets/CreateOutletDialog.vue";
 
 const router = useRouter();
 
 const outlets = ref<Outlet[]>([]);
+const showCreateOutletDialog = ref(false);
 
 const [loading, refresh] = useLoadingState(async () => {
   outlets.value = await client.outlet.getAllOutlets.query();
@@ -48,5 +51,23 @@ onMounted(refresh);
       :loading="loading"
       @row-clicked="goToOutlet"
     />
+    <template #footer>
+      <button-bar>
+        <template #right>
+          <br-btn
+            color="primary"
+            :disabled="loading"
+            @click="showCreateOutletDialog = true"
+          >
+            Create outlet
+          </br-btn>
+        </template>
+      </button-bar>
+    </template>
   </br-page>
+  <create-outlet-dialog
+    v-if="showCreateOutletDialog"
+    v-model="showCreateOutletDialog"
+    @accept="refresh"
+  />
 </template>
