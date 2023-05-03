@@ -20,6 +20,9 @@ import CreateSalesVisitDialog from "@/components/sales/CreateSalesVisitDialog.vu
 import AddExistingVisitDialog from "@/components/sales/AddExistingVisitDialog.vue";
 import BrMap, { Marker } from "@/components/map/BrMap.vue";
 import InProgressJourney from "@/views/sales/InProgressJourney.vue";
+import RecordMileageDialog, {
+  RecordMileageEvent,
+} from "@/components/sales/RecordMileageDialog.vue";
 
 type SalesJourneyAndVisit = SalesJourney & {
   salesVisits: SalesVisit[];
@@ -39,7 +42,7 @@ const showAddExistingVisitDialog = ref(false);
 const showMapView = ref(false);
 const selectedOutletIdFromMap = ref<string | null>(null);
 const showAddVisitSnackbar = ref(false);
-const currentVisit = ref<SalesVisit>();
+const showMileageDialog = ref(false);
 
 const internalSalesJourney = reactive<SalesJourney>({
   reference: "",
@@ -89,27 +92,33 @@ const [updating, updateSalesJourney] = useLoadingState(async () => {
   await refresh();
 });
 
-const startJourney = async () => {
+const startJourney = async (event: RecordMileageEvent) => {
   internalSalesJourney.inProgress = true;
+  internalSalesJourney.startMilage = event.startMileage;
   await updateSalesJourney();
 };
 
-const finishJourney = async () => {
-  if (!salesJourney.value?.id) {
-    return;
+const [finishingJourney, finishJourney] = useLoadingState(
+  async (event: RecordMileageEvent) => {
+    if (!salesJourney.value?.id) {
+      return;
+    }
+
+    // get updated journey
+    salesJourney.value = await client.salesJourney.getSalesJourney.query(
+      salesJourney.value.id
+    );
+
+    // update journey
+    await client.salesJourney.completeJourney.mutate({
+      id: salesJourney.value.id,
+      endMileage: event.endMileage,
+    });
+
+    // refresh
+    await refresh();
   }
-
-  // get updated journey
-  salesJourney.value = await client.salesJourney.getSalesJourney.query(
-    salesJourney.value.id
-  );
-
-  // update journey
-  await client.salesJourney.completeJourney.mutate(salesJourney.value.id);
-
-  // refresh
-  await refresh();
-};
+);
 
 const journeyInProgress = computed(
   () => salesJourney.value?.inProgress ?? false
@@ -337,7 +346,8 @@ onMounted(refresh);
             class="ml-2"
             color="primary"
             :disabled="loading"
-            @click="finishJourney"
+            :loading="finishingJourney"
+            @click="showMileageDialog = true"
           >
             Finish Journey
           </br-btn>
@@ -347,7 +357,7 @@ onMounted(refresh);
             color="primary"
             :disabled="loading"
             :loading="updating"
-            @click="startJourney"
+            @click="showMileageDialog = true"
           >
             Start Journey
           </br-btn>
@@ -370,6 +380,14 @@ onMounted(refresh);
     :sales-visits="allSalesVisits"
     :sales-journey="salesJourney"
     @accept="refresh"
+  />
+  <record-mileage-dialog
+    v-if="showMileageDialog && salesJourney"
+    v-model="showMileageDialog"
+    :sales-journey="salesJourney"
+    @accept="
+      salesJourney.inProgress ? finishJourney($event) : startJourney($event)
+    "
   />
   <v-snackbar v-model="showAddVisitSnackbar" :timeout="10000">
     Would you like to add a visit to

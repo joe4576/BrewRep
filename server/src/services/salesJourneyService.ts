@@ -149,12 +149,13 @@ export class SalesJourneyService extends BaseService {
     return newJourney;
   }
 
-  public async completeJourney(journeyId: string) {
+  public async completeJourney(input: { id: string; endMileage: number }) {
+    const { id, endMileage } = input;
     const journey = await prisma.salesJourney.findFirst({
       where: {
         tenantId: this.tenantId,
         AND: {
-          id: journeyId,
+          id,
         },
       },
     });
@@ -166,15 +167,16 @@ export class SalesJourneyService extends BaseService {
     // Mark all visits as complete
     const updatedJourney = await prisma.salesJourney.update({
       where: {
-        id: journeyId,
+        id,
       },
       data: {
         completed: true,
         inProgress: false,
+        endMilage: endMileage,
         salesVisits: {
           updateMany: {
             where: {
-              salesJourneyId: journeyId,
+              salesJourneyId: id,
             },
             data: {
               status: "COMPLETE",

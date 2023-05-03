@@ -127,12 +127,22 @@ export const salesJourneyRouter = router({
     }),
 
   completeJourney: tenantProcedure
-    .input(uuidValidator)
+    .input(
+      z.object({
+        id: uuidValidator,
+        endMileage: z.number(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       const salesJourneyService = new SalesJourneyService(ctx.tenant.id!);
 
+      const { id, endMileage } = input;
+
       try {
-        return await salesJourneyService.completeJourney(input);
+        return await salesJourneyService.completeJourney({
+          id,
+          endMileage,
+        });
       } catch (e) {
         throw new TRPCError({
           code: "BAD_REQUEST",

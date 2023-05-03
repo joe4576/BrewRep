@@ -39,6 +39,9 @@ const gridConfiguration = new GridConfigurationBuilder<SalesJourney>()
   )
   .addDateColumn("Date", (item) => item.date)
   .addBooleanColumn("Completed?", (item) => item.completed)
+  .addTextColumn("Distance travelled", (item) =>
+    item.completed ? (item.endMilage - item.startMilage).toString() : "-"
+  )
   .addActionsColumn((builder) => {
     builder
       .addRoutingAction("View", (item) => ({
