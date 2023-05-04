@@ -68,11 +68,16 @@ export const useUserStore = defineStore("userStore", () => {
     return !!state.tenantId;
   });
 
+  const hasBrewManLink = computed(() => {
+    return !!state.brewmanLink;
+  });
+
   return {
     load,
     ...toRefs(state),
     clearState,
     isUserSignedIn,
     isTenantSelected,
+    hasBrewManLink,
   };
 });

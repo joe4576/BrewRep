@@ -51,6 +51,7 @@ model Outlet {
   long              String
   salesVisits       SalesVisit[]
   communicationLogs CommunicationLog[]
+  isBrewManOutlet   Boolean            @default(false)
 }
 
 model CommunicationLog {

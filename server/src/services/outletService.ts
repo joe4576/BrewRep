@@ -1,6 +1,13 @@
 import prisma from "../../prismaClient";
 import { Outlet } from "../models/outlet.model";
 import { BaseService } from "./baseService";
+import { globalBrewmanAuth } from "../../bmapi/auth";
+import { BrewmanLinkService } from "./brewmanLinkService";
+import {
+  postOutletV1GetAllOutlets,
+  postOutletV1GetOutlets,
+} from "../../bmapi/services";
+import { Outlet as BrewManOutlet } from "../../bmapi/types";
 
 export class OutletService extends BaseService {
   public async createOutlet(outlet: Outlet) {
@@ -98,5 +105,83 @@ export class OutletService extends BaseService {
         id: outlet.id,
       },
     });
+  }
+
+  private buildOutletFromBrewManOutlet(brewmanOutlet: BrewManOutlet): Outlet {
+    return {
+      tenantId: this.tenantId,
+      id: brewmanOutlet.id,
+      name: brewmanOutlet.displayName ?? "no name given",
+      code: brewmanOutlet.readOnly.code ?? "no code given",
+      lat: brewmanOutlet.readOnly.mainLatitude?.toString() ?? "",
+      long: brewmanOutlet.readOnly.mainLongitude?.toString() ?? "",
+      isBrewManOutlet: true,
+    };
+  }
+
+  public async getAllBrewManOutlets(): Promise<Outlet[]> {
+    const brewmanLinkService = new BrewmanLinkService(this.tenantId);
+
+    const link = await brewmanLinkService.getBrewmanLink();
+
+    if (!link) {
+      throw new Error("No BrewMan link found");
+    }
+
+    const { brewmanTenantId, brewmanApiKey } = link;
+
+    globalBrewmanAuth.apiToken = brewmanApiKey;
+
+    const outlets = await postOutletV1GetAllOutlets({
+      tenantId: brewmanTenantId,
+    });
+
+    globalBrewmanAuth.apiToken = "";
+
+    return (
+      outlets.data.outlets?.map((outlet) =>
+        this.buildOutletFromBrewManOutlet(outlet)
+      ) ?? []
+    );
+  }
+
+  public async importBrewManOutlets(brewmanOutletIds: string[]) {
+    const brewmanLinkService = new BrewmanLinkService(this.tenantId);
+
+    const link = await brewmanLinkService.getBrewmanLink();
+
+    if (!link) {
+      throw new Error("No BrewMan link found");
+    }
+
+    const { brewmanTenantId, brewmanApiKey } = link;
+
+    globalBrewmanAuth.apiToken = brewmanApiKey;
+
+    // get all specified outlets from brewmman
+    const selectedOutlets = await postOutletV1GetOutlets({
+      tenantId: brewmanTenantId,
+      outletId: brewmanOutletIds,
+    });
+
+    globalBrewmanAuth.apiToken = "";
+
+    const transformedOutlets =
+      selectedOutlets.data.outlets?.map((outlet) =>
+        this.buildOutletFromBrewManOutlet(outlet)
+      ) ?? [];
+
+    if (transformedOutlets.length === 0) {
+      throw new Error("No outlets to transform");
+    }
+
+    // now create the newly imported outlets - skipDuplicates will ignore any outlets
+    // that exist with the unique "id" field
+    const newOutlets = await prisma.outlet.createMany({
+      skipDuplicates: true,
+      data: transformedOutlets,
+    });
+
+    return newOutlets;
   }
 }
