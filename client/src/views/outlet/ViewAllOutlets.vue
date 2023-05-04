@@ -61,6 +61,7 @@ onMounted(refresh);
       </br-btn>
     </template>
     <br-grid
+      class="pb-4"
       :items="outlets"
       :grid-configuration="gridConfiguration"
       :loading="loading"

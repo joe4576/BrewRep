@@ -95,6 +95,7 @@ onMounted(refresh);
 <template>
   <br-page :loading="loading" title="Sales Visits">
     <br-grid
+      class="pb-4"
       :items="visits"
       :grid-configuration="gridConfiguration"
       :loading="loading"

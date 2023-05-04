@@ -99,6 +99,7 @@ onMounted(refresh);
 <template>
   <br-page title="Tasks">
     <br-grid
+      class="pb-4"
       :grid-configuration="gridConfiguration"
       :items="tasks"
       :loading="loading"
