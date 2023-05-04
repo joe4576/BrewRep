@@ -15,6 +15,7 @@ import { GridConfigurationBuilder } from "@/components/grid/gridConfigurationBui
 import BrGrid from "@/components/grid/BrGrid.vue";
 import TaskEditDialog from "@/components/tasks/TaskEditDialog.vue";
 import { EntireItem } from "@server/bmapi/types";
+import { useUserStore } from "@/store/userStore";
 
 interface InProgressVisitProps {
   salesJourneyId: string;
@@ -23,6 +24,8 @@ interface InProgressVisitProps {
 type SalesJourneyAndVisits = SalesJourney & { salesVisits: SalesVisit[] };
 
 const props = defineProps<InProgressVisitProps>();
+
+const userStore = useUserStore();
 
 const salesJourney = ref<SalesJourneyAndVisits>();
 const currentVisit = ref<SalesVisit>();
@@ -263,7 +266,9 @@ onMounted(refresh);
                 />
               </v-col>
             </v-row>
-            <v-row v-if="currentOutlet?.isBrewManOutlet">
+            <v-row
+              v-if="currentOutlet?.isBrewManOutlet && userStore.hasBrewManLink"
+            >
               <v-col cols="12">
                 <h6 class="text-h6">Recently Ordered Products</h6>
               </v-col>
@@ -280,7 +285,7 @@ onMounted(refresh);
           <v-card-actions>
             <v-spacer />
             <br-btn
-              v-if="currentOutlet?.isBrewManOutlet"
+              v-if="currentOutlet?.isBrewManOutlet && userStore.hasBrewManLink"
               variant="text"
               color="primary"
               :disabled="currentVisit.status === 'COMPLETE'"
