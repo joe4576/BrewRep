@@ -97,21 +97,25 @@ onMounted(refresh);
               <br-text
                 v-model="internalOutlet.name"
                 label="Name"
+                :disabled="isBrewManOutlet"
                 :rules="[required]"
               />
               <br-text
                 v-model="internalOutlet.code"
                 label="Code"
+                :disabled="isBrewManOutlet"
                 :rules="[required]"
               />
               <br-text
                 v-model="internalOutlet.lat"
                 label="Latitude"
+                :disabled="isBrewManOutlet"
                 :rules="[required]"
               />
               <br-text
                 v-model="internalOutlet.long"
                 label="Longitude"
+                :disabled="isBrewManOutlet"
                 :rules="[required]"
               />
             </br-form>
@@ -119,14 +123,29 @@ onMounted(refresh);
           <v-card-actions>
             <v-spacer />
             <br-btn
-              v-if="userStore.hasBrewManLink"
+              v-if="isBrewManOutlet"
               color="primary"
               :href="`https://localhost:7000/outlet/${internalOutlet.id}/crm`"
               target="_blank"
             >
               Open in BrewMan
             </br-btn>
+            <v-tooltip v-if="isBrewManOutlet" location="top">
+              <template #activator="{ props }">
+                <br-btn
+                  v-bind="props"
+                  color="primary"
+                  :disabled="loading || savingOutlet"
+                  :loading="savingOutlet"
+                  @click="saveOutlet"
+                >
+                  Update
+                </br-btn>
+              </template>
+              <span> Fetch updated outlet information from BrewMan </span>
+            </v-tooltip>
             <br-btn
+              v-else
               color="primary"
               :disabled="loading || savingOutlet"
               :loading="savingOutlet"
