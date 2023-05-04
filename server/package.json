@@ -8,7 +8,8 @@
     "dev": "tsnd --respawn --transpile-only src/server.ts",
     "start": "node dist/server.js",
     "dbreset": "npx prisma db push && npx prisma db seed",
-    "test:unit": "vitest -c ./vitest.config.unit.ts"
+    "test:unit": "vitest -c ./vitest.config.unit.ts",
+    "bmcodegen": "npx swag-ts ./swagger.config.json"
   },
   "prisma": {
     "seed": "ts-node prisma/canned/seed.ts"
@@ -21,6 +22,7 @@
     "@types/express": "^4.17.17",
     "@types/uuid": "^9.0.1",
     "prisma": "^4.11.0",
+    "swagger-typescript": "^6.2.7",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^4.9.5",
@@ -30,6 +32,7 @@
   "dependencies": {
     "@prisma/client": "^4.11.0",
     "@trpc/server": "^10.14.1",
+    "axios": "^0.27.2",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "firebase-admin": "^11.5.0",
