@@ -31,6 +31,7 @@ const [loading, refresh] = useLoadingState(async () => {
 const gridConfiguration = new GridConfigurationBuilder<Outlet>()
   .addTextColumn("Outlet name", (item) => item.name)
   .addTextColumn("Outlet code", (item) => item.code)
+  .addBooleanColumn("BrewMan Outlet?", (item) => item.isBrewManOutlet)
   .addActionsColumn((builder) =>
     builder
       .addRoutingAction("View", (item) => ({
