@@ -12,6 +12,8 @@ import { User } from "@server/models/user.model";
 import { computed, onMounted, ref } from "vue";
 import { SalesVisit } from "@server/models/salesVisit.model";
 import { SalesJourney } from "@server/models/salesJourney.model";
+import BrDropdown from "@/components/input/BrDropdown.vue";
+import { filterNonUniqueByProperty } from "@/utils/dataUtils";
 
 type TaskAndVisit = Partial<Task & SalesVisit>;
 
@@ -26,7 +28,11 @@ const selectedTask = ref<Task>();
 const selectedVisit = ref<SalesVisitAndJourney>();
 const showEditTaskDialog = ref(false);
 const hideWeekends = ref(true);
+const hideTasks = ref(false);
+const hideVisits = ref(false);
 const summaryMenuActivator = ref();
+const showTasksForUserId = ref();
+const showVisitsForJourneyId = ref();
 
 const [refreshLoading, refresh] = useLoadingState(async () => {
   [tasks.value, users.value, salesVisits.value] = await Promise.all([
@@ -37,6 +43,43 @@ const [refreshLoading, refresh] = useLoadingState(async () => {
 });
 
 onMounted(refresh);
+
+const salesJourneys = computed(() =>
+  filterNonUniqueByProperty(
+    salesVisits.value
+      .map((visit) => visit.salesJourney)
+      .filter((journey) => !!journey) as SalesJourney[],
+    (item) => item.id
+  )
+);
+
+const filteredVisits = computed(() => {
+  if (hideVisits.value) {
+    return [];
+  }
+
+  if (showVisitsForJourneyId.value) {
+    return [...salesVisits.value].filter(
+      (visit) => visit.salesJourneyId === showVisitsForJourneyId.value
+    );
+  }
+
+  return salesVisits.value;
+});
+
+const filteredTasks = computed(() => {
+  if (hideTasks.value) {
+    return [];
+  }
+
+  if (showTasksForUserId.value) {
+    return [...tasks.value].filter(
+      (task) => task.assignedToUserId === showTasksForUserId.value
+    );
+  }
+
+  return tasks.value;
+});
 
 const [savingTask, saveTask] = useLoadingState(
   async (task: Task, newDueDate: Date) => {
@@ -57,8 +100,8 @@ const [savingVisit, saveVisit] = useLoadingState(
 );
 
 const tasksAndVisits = computed((): TaskAndVisit[] => [
-  ...tasks.value,
-  ...salesVisits.value,
+  ...filteredTasks.value,
+  ...filteredVisits.value,
 ]);
 
 const eventIsTask = (event: TaskAndVisit): event is Task =>
@@ -208,12 +251,44 @@ const visitEventSummaryItems: SummaryItem[] = [
 <template>
   <v-container class="pa-0" fluid style="height: calc(100vh - 125px)">
     <div class="d-flex justify-space-between">
-      <div>
+      <div class="d-flex flex-wrap">
         <br-checkbox
           v-model="hideWeekends"
           label="Hide Weekends"
           hide-details
           density="compact"
+        />
+        <br-checkbox
+          v-model="hideTasks"
+          class="pl-2"
+          label="Hide Tasks"
+          hide-details
+          density="compact"
+        />
+        <br-dropdown
+          v-model="showTasksForUserId"
+          class="pl-3"
+          :item-title="(item: User) => item.name"
+          :item-value="(item: User) => item.id!"
+          label="Filter task users"
+          :items="users"
+          clearable
+        />
+        <br-checkbox
+          v-model="hideVisits"
+          class="pl-2"
+          label="Hide Visits"
+          hide-details
+          density="compact"
+        />
+        <br-dropdown
+          v-model="showVisitsForJourneyId"
+          class="pl-3"
+          :item-title="(item: SalesJourney) => item.reference"
+          :item-value="(item: SalesJourney) => item.id"
+          label="Filter visits by journey"
+          :items="salesJourneys"
+          clearable
         />
       </div>
       <div v-if="savingTask || refreshLoading || savingVisit">

@@ -24,6 +24,7 @@ const { model } = useModelValue(() => props.modelValue, emit);
   <v-autocomplete
     v-model="model"
     v-bind="$attrs"
+    style="min-width: 220px"
     :items="items"
     :item-title="itemTitle"
     :item-value="itemValue"
