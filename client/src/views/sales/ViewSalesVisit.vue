@@ -23,6 +23,8 @@ import BrGrid from "@/components/grid/BrGrid.vue";
 import { GridConfigurationBuilder } from "@/components/grid/gridConfigurationBuilder";
 import { Task } from "@server/models/task.model";
 import TaskEditDialog from "@/components/tasks/TaskEditDialog.vue";
+import { useUserStore } from "@/store/userStore";
+import { v4 as uuid } from "uuid";
 
 type SalesVisitAndJourney = SalesVisit & {
   salesJourney: SalesJourney | null;
@@ -34,6 +36,8 @@ interface ViewSalesJourneyProps {
 
 const props = defineProps<ViewSalesJourneyProps>();
 
+const userStore = useUserStore();
+
 const salesVisit = ref<SalesVisitAndJourney>();
 const outlets = ref<Outlet[]>([]);
 const salesJourneys = ref<SalesJourney[]>([]);
@@ -43,6 +47,7 @@ const tasks = ref<Task[]>([]);
 const taskToEdit = ref<Task>();
 const showTaskEditDialog = ref(false);
 const showCreateCommunicationLogDialog = ref(false);
+const creatingTask = ref(false);
 
 const internalSalesVisit = reactive<SalesVisit>({
   endTime: new Date(),
@@ -89,6 +94,7 @@ const [loading, refresh] = useLoadingState(async () => {
     ([key, value]) => (internalSalesVisit[key] = value)
   );
 
+  creatingTask.value = false;
   resetDirtyState();
 });
 
@@ -112,6 +118,26 @@ const salesVisitStatus = computed(() => {
 
   return salesVisit.value?.status ?? "-";
 });
+
+const createTask = () => {
+  if (!userStore.user || !userStore.tenantId) {
+    return;
+  }
+
+  taskToEdit.value = {
+    createdByUserId: userStore.user.id!,
+    dateCreated: new Date(),
+    dateDue: new Date(),
+    id: uuid(),
+    assignedSalesVisitId: salesVisit.value?.id ?? null,
+    description: "",
+    completed: false,
+    tenantId: userStore.tenantId,
+  };
+
+  creatingTask.value = true;
+  showTaskEditDialog.value = true;
+};
 
 const tasksGridConfiguration = new GridConfigurationBuilder<Task>()
   .addTextColumn("Description", (item) => item.description)
@@ -236,7 +262,12 @@ onMounted(refresh);
     <template #footer>
       <button-bar>
         <template #right>
-          <br-btn secondary @click="showCreateCommunicationLogDialog = true">
+          <br-btn secondary @click="createTask"> Create Task</br-btn>
+          <br-btn
+            class="ml-2"
+            secondary
+            @click="showCreateCommunicationLogDialog = true"
+          >
             Log Communication
           </br-btn>
           <br-btn
@@ -266,6 +297,7 @@ onMounted(refresh);
     :task="taskToEdit"
     :users="users"
     :sales-visits="[salesVisit]"
+    :is-creating="creatingTask"
     @accept="
       showTaskEditDialog = false;
       refresh();
