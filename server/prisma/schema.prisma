@@ -105,5 +105,5 @@ model BrewmanLink {
   id              String @id @default(uuid())
   brewmanApiKey   String
   brewmanTenantId String
-  Tenant          Tenant @relation(fields: [tenantId], references: [id])
+  Tenant          Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }

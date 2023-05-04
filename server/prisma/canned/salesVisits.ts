@@ -1,19 +1,32 @@
 import { PrismaClient } from "@prisma/client";
 import { DateUtils } from "./dateUtils";
-import { joesBreweryId, stMarysId, wetherspoonsId } from "./outlets";
+import {
+  joesBreweryId,
+  premierSystemsId,
+  stMarysId,
+  westQuayId,
+  wetherspoonsId,
+} from "./outlets";
 import { chrisId, joeId, tenantId } from "./tenants";
 import { v4 as uuid } from "uuid";
 
 export default async function generateSalesVisitData(prisma: PrismaClient) {
+  // Journey 1
   const visit1Id = uuid();
   const visit2Id = uuid();
   const visit3Id = uuid();
+
+  // Journey2
+  const visit4Id = uuid();
+  const visit5Id = uuid();
+  const visit6Id = uuid();
+  const visit7Id = uuid();
 
   await prisma.salesJourney.create({
     data: {
       tenantId,
       assignedUserId: joeId,
-      date: new Date(),
+      date: new DateUtils("monday").toDate(),
       reference: "Journey #1",
       salesVisits: {
         createMany: {
@@ -22,25 +35,91 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
               id: visit1Id,
               tenantId,
               outletId: joesBreweryId,
-              startTime: new DateUtils().plusHours(1).toDate(),
-              endTime: new DateUtils().plusHours(2).toDate(),
+              startTime: new DateUtils("monday").plusHours(10).toDate(),
+              endTime: new DateUtils("monday")
+                .plusHours(11)
+                .plusMinutes(30)
+                .toDate(),
               reference: "Joe's Brewery visit",
             },
             {
               id: visit2Id,
               tenantId,
               outletId: stMarysId,
-              startTime: new DateUtils().plusHours(2).plusMinutes(30).toDate(),
-              endTime: new DateUtils().plusHours(3).toDate(),
+              startTime: new DateUtils("monday")
+                .plusHours(12)
+                .plusMinutes(30)
+                .toDate(),
+              endTime: new DateUtils("monday")
+                .plusHours(13)
+                .plusMinutes(30)
+                .toDate(),
               reference: "St Mary's visit",
             },
             {
               id: visit3Id,
               tenantId,
               outletId: wetherspoonsId,
-              startTime: new DateUtils().plusHours(3).plusMinutes(20).toDate(),
-              endTime: new DateUtils().plusHours(4).toDate(),
+              startTime: new DateUtils("monday").plusHours(16).toDate(),
+              endTime: new DateUtils("monday").plusHours(17).toDate(),
               reference: "Wetherspoons Visit",
+            },
+          ],
+        },
+      },
+    },
+  });
+
+  await prisma.salesJourney.create({
+    data: {
+      tenantId,
+      assignedUserId: chrisId,
+      date: new DateUtils("wednesday").toDate(),
+      reference: "Journey #2",
+      salesVisits: {
+        createMany: {
+          data: [
+            {
+              id: visit4Id,
+              tenantId,
+              outletId: westQuayId,
+              startTime: new DateUtils("wednesday").plusHours(9).toDate(),
+              endTime: new DateUtils("wednesday").plusHours(10).toDate(),
+              reference: "West Quay visit #2",
+            },
+            {
+              id: visit5Id,
+              tenantId,
+              outletId: wetherspoonsId,
+              startTime: new DateUtils("wednesday")
+                .plusHours(11)
+                .plusMinutes(30)
+                .toDate(),
+              endTime: new DateUtils("wednesday")
+                .plusHours(13)
+                .plusMinutes(30)
+                .toDate(),
+              reference: "Wetherspoons Visit #2",
+            },
+            {
+              id: visit6Id,
+              tenantId,
+              outletId: joesBreweryId,
+              startTime: new DateUtils("wednesday")
+                .plusHours(13)
+                .plusMinutes(45)
+                .toDate(),
+              endTime: new DateUtils("wednesday").plusHours(15).toDate(),
+              reference: "Joe's Brewery visit #2",
+            },
+
+            {
+              id: visit7Id,
+              tenantId,
+              outletId: premierSystemsId,
+              startTime: new DateUtils("wednesday").plusHours(16).toDate(),
+              endTime: new DateUtils("wednesday").plusHours(17).toDate(),
+              reference: "Premier Systems visit #2",
             },
           ],
         },

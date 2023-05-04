@@ -15,6 +15,7 @@ async function dropAllRows() {
     prisma.salesJourney.deleteMany(),
     prisma.salesVisit.deleteMany(),
     prisma.communicationLog.deleteMany(),
+    prisma.brewmanLink.deleteMany(),
   ]);
 }
 
