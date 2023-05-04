@@ -127,7 +127,7 @@ const createTask = () => {
   taskToEdit.value = {
     createdByUserId: userStore.user.id!,
     dateCreated: new Date(),
-    dateDue: new Date(),
+    dateDue: salesVisit.value?.startTime ?? new Date(),
     id: uuid(),
     assignedSalesVisitId: salesVisit.value?.id ?? null,
     description: "",
