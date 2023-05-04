@@ -164,7 +164,6 @@ export class SalesJourneyService extends BaseService {
       throw new Error("Journey not found");
     }
 
-    // Mark all visits as complete
     const updatedJourney = await prisma.salesJourney.update({
       where: {
         id,
@@ -173,16 +172,6 @@ export class SalesJourneyService extends BaseService {
         completed: true,
         inProgress: false,
         endMilage: endMileage,
-        salesVisits: {
-          updateMany: {
-            where: {
-              salesJourneyId: id,
-            },
-            data: {
-              status: "COMPLETE",
-            },
-          },
-        },
       },
     });
 

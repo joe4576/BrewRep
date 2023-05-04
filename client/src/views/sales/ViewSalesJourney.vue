@@ -177,18 +177,24 @@ const gridConfiguration = new GridConfigurationBuilder<SalesVisit>()
       .addRoutingAction("View", (item) => ({
         path: `/sales/visits/${item.id}`,
       }))
-      .addClickAction("Remove Visit", async (item) => {
-        if (!item.salesJourneyId) {
-          return;
+      .addClickAction(
+        "Remove Visit",
+        async (item) => {
+          if (!item.salesJourneyId) {
+            return;
+          }
+
+          await client.salesJourney.removeVisitFromSalesJourney.mutate({
+            salesJourneyId: item.salesJourneyId,
+            salesVisitId: item.id,
+          });
+
+          await refresh();
+        },
+        {
+          visible: () => journeyComplete.value === false,
         }
-
-        await client.salesJourney.removeVisitFromSalesJourney.mutate({
-          salesJourneyId: item.salesJourneyId,
-          salesVisitId: item.id,
-        });
-
-        await refresh();
-      });
+      );
   })
   .build();
 
@@ -201,20 +207,52 @@ onMounted(refresh);
       {{ salesJourneyStatus }}
     </template>
     <template v-if="journeyComplete">
-      <p>
-        This journey had been completed. This is a list of all the visits that
-        were completed on this journey.
-      </p>
-      <br-grid
-        :grid-configuration="gridConfiguration"
-        :items="salesJourney?.salesVisits ?? []"
-        :loading="loading"
-        @row-clicked="
-          $router.push({
-            path: `/sales/visits/${$event.id}`,
-          })
-        "
-      />
+      <v-row>
+        <v-col cols="12">
+          <p>
+            This journey had been completed. This is a list of all the visits
+            that were completed on this journey.
+          </p>
+        </v-col>
+        <v-col cols="12">
+          <br-grid
+            :grid-configuration="gridConfiguration"
+            style="min-height: 200px"
+            :items="
+              salesJourney?.salesVisits?.filter(
+                (visit) => visit.status === 'COMPLETE'
+              ) ?? []
+            "
+            :loading="loading"
+            @row-clicked="
+              $router.push({
+                path: `/sales/visits/${$event.id}`,
+              })
+            "
+          />
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="12">
+          <p>These visits were <strong>NOT</strong> completed</p>
+        </v-col>
+        <v-col cols="12">
+          <br-grid
+            :grid-configuration="gridConfiguration"
+            :items="
+              salesJourney?.salesVisits?.filter(
+                (visit) => visit.status === 'OPEN'
+              ) ?? []
+            "
+            :loading="loading"
+            @row-clicked="
+              $router.push({
+                path: `/sales/visits/${$event.id}`,
+              })
+            "
+          />
+        </v-col>
+      </v-row>
     </template>
     <template v-else-if="journeyInProgress">
       <in-progress-journey :sales-journey-id="salesJourney.id" />
