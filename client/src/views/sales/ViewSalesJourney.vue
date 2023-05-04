@@ -407,7 +407,7 @@ onMounted(refresh);
     v-if="showCreateSalesVisitDialog && salesJourney"
     v-model="showCreateSalesVisitDialog"
     :sales-journeys="[salesJourney]"
-    creating-from-visit
+    creating-from-journey
     :outlets="outlets"
     :outlet-id="selectedOutletIdFromMap"
     @accept="refresh"

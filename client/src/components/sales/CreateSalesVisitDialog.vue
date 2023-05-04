@@ -19,7 +19,7 @@ interface ConfirmationDialogProps {
   modelValue: boolean;
   outlets: Outlet[];
   salesJourneys: SalesJourney[];
-  creatingFromVisit?: boolean;
+  creatingFromJourney?: boolean;
   outletId?: string | null;
 }
 
@@ -64,8 +64,10 @@ const [creating, createSalesVisit] = useLoadingState(async () => {
 watch(
   () => props.salesJourneys,
   (val) => {
-    if (val.length >= 1 && props.creatingFromVisit) {
+    if (val.length >= 1 && props.creatingFromJourney) {
       internalSalesVisit.salesJourneyId = props.salesJourneys[0].id;
+      internalSalesVisit.startTime = props.salesJourneys[0].date;
+      internalSalesVisit.endTime = props.salesJourneys[0].date;
     }
   },
   {
@@ -113,8 +115,8 @@ watch(
         :items="salesJourneys"
         :item-title="(item: SalesJourney) => item.reference"
         :item-value="(item: SalesJourney) => item.id"
-        :readonly="creatingFromVisit"
-        :clearable="!creatingFromVisit"
+        :readonly="creatingFromJourney"
+        :clearable="!creatingFromJourney"
       />
     </br-form>
   </br-dialog>

@@ -26,7 +26,7 @@ export default async function generateSalesVisitData(
     data: {
       tenantId: sharedIds.tenantId,
       assignedUserId: sharedIds.userId,
-      date: new DateUtils("monday").toDate(),
+      date: new DateUtils("monday").plusHours(9).toDate(),
       reference: "Journey #1",
       salesVisits: {
         createMany: {
@@ -74,7 +74,7 @@ export default async function generateSalesVisitData(
     data: {
       tenantId: sharedIds.tenantId,
       assignedUserId: sharedIds.userId,
-      date: new DateUtils("wednesday").toDate(),
+      date: new DateUtils("wednesday").plusHours(8).plusMinutes(30).toDate(),
       reference: "Journey #2",
       salesVisits: {
         createMany: {
