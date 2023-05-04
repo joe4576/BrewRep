@@ -1,14 +1,20 @@
 import prisma from "../../prismaClient";
 import { Outlet } from "../models/outlet.model";
 import { BaseService } from "./baseService";
-import { globalBrewmanAuth } from "../../bmapi/auth";
+import { globalBrewmanAuth } from "../bmapi/auth";
 import { BrewmanLinkService } from "./brewmanLinkService";
 import {
+  postItemV1GetEntireItems,
+  postOrderV2GetOrdersByFilter,
   postOutletV1GetAllOutlets,
   postOutletV1GetOutlet,
   postOutletV1GetOutlets,
-} from "../../bmapi/services";
-import { Outlet as BrewManOutlet } from "../../bmapi/types";
+} from "../bmapi/services";
+import {
+  EnumOrderStatus,
+  OrderFilter,
+  Outlet as BrewManOutlet,
+} from "../bmapi/types";
 
 export class OutletService extends BaseService {
   public async createOutlet(outlet: Outlet) {
@@ -191,10 +197,14 @@ export class OutletService extends BaseService {
   public async updateBrewManOutlet(id: string) {
     const { brewmanTenantId, brewmanApiKey } = await this.getBrewManLink();
 
+    globalBrewmanAuth.apiToken = brewmanApiKey;
+
     const brewManOutlet = await postOutletV1GetOutlet({
       tenantId: brewmanTenantId,
       outletId: id,
     });
+
+    globalBrewmanAuth.apiToken = "";
 
     const transformedOutlet = this.buildOutletFromBrewManOutlet(
       brewManOutlet.data.outlet
@@ -208,5 +218,43 @@ export class OutletService extends BaseService {
     });
 
     return updatedOutlet;
+  }
+
+  public async getRecentlyOrderedProductsForBrewmanOutlet(id: string) {
+    const { brewmanTenantId, brewmanApiKey } = await this.getBrewManLink();
+
+    const orderFilter: OrderFilter = {
+      outletIds: [id],
+      limitStatuses: [
+        EnumOrderStatus.Open,
+        EnumOrderStatus.Complete,
+        EnumOrderStatus.Posting,
+        EnumOrderStatus.Historic,
+      ],
+      maximumResults: 100,
+    };
+
+    globalBrewmanAuth.apiToken = brewmanApiKey;
+
+    const orders = await postOrderV2GetOrdersByFilter({
+      tenantId: brewmanTenantId,
+      filter: orderFilter,
+    });
+
+    const stockItemIds =
+      orders.data.results.orders
+        ?.flatMap((order) => order.lines ?? [])
+        ?.map((line) => line.stockItemId) ?? [];
+
+    const uniqueStockItemIds = [...new Set(stockItemIds)];
+
+    const stockItems = await postItemV1GetEntireItems({
+      tenantId: brewmanTenantId,
+      itemIds: uniqueStockItemIds,
+    });
+
+    globalBrewmanAuth.apiToken = "";
+
+    return stockItems.data.entireItems ?? [];
   }
 }

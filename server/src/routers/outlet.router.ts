@@ -171,4 +171,22 @@ export const outletRouter = router({
         });
       }
     }),
+
+  getRecentlyOrderedProductsForBrewmanOutlet: tenantProcedure
+    .input(uuidValidator)
+    .query(async ({ input, ctx }) => {
+      const { tenant } = ctx;
+
+      const outletService = new OutletService(tenant.id!);
+
+      try {
+        return outletService.getRecentlyOrderedProductsForBrewmanOutlet(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to get recently ordered products",
+        });
+      }
+    }),
 });

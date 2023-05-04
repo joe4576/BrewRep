@@ -21,6 +21,8 @@ defineProps<ActionsColumnRendererProps>();
         <v-list-item
           v-if="action.options?.visible?.(params.data) ?? true"
           :to="action.routerLocationCallback?.(params.data)"
+          :href="action.hrefCallback?.(params.data)"
+          :target="!!action.hrefCallback ? '_blank' : '_self'"
           @click="action.callback?.(params.data)"
         >
           <v-list-item-title>
