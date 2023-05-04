@@ -1,0 +1,5 @@
+{
+  "url": "https://localhost:7001/swagger/v1/swagger.json",
+  "dir": "./src/bmapi",
+  "prefix": "/webapi"
+}

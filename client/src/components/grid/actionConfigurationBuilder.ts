@@ -7,6 +7,7 @@ export type Action<T> = {
   routerLocationCallback?: (item: T) => RouteLocationRaw;
   callback?: Callback<T>;
   options?: ActionOptions<T>;
+  hrefCallback?: (item: T) => string;
 };
 
 type ActionOptions<T> = {
@@ -24,6 +25,20 @@ export class ActionConfigurationBuilder<T extends object> {
     this._actions.push({
       name,
       routerLocationCallback,
+      options,
+    });
+
+    return this;
+  }
+
+  addHrefAction(
+    name: string,
+    hrefCallback: (item: T) => string,
+    options?: ActionOptions<T>
+  ) {
+    this._actions.push({
+      name,
+      hrefCallback,
       options,
     });
 

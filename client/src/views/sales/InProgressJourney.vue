@@ -14,6 +14,8 @@ import { Task } from "@server/models/task.model";
 import { GridConfigurationBuilder } from "@/components/grid/gridConfigurationBuilder";
 import BrGrid from "@/components/grid/BrGrid.vue";
 import TaskEditDialog from "@/components/tasks/TaskEditDialog.vue";
+import { EntireItem } from "@server/bmapi/types";
+import { useUserStore } from "@/store/userStore";
 
 interface InProgressVisitProps {
   salesJourneyId: string;
@@ -22,6 +24,8 @@ interface InProgressVisitProps {
 type SalesJourneyAndVisits = SalesJourney & { salesVisits: SalesVisit[] };
 
 const props = defineProps<InProgressVisitProps>();
+
+const userStore = useUserStore();
 
 const salesJourney = ref<SalesJourneyAndVisits>();
 const currentVisit = ref<SalesVisit>();
@@ -32,6 +36,7 @@ const showTaskEditDialog = ref(false);
 const currentOutlet = ref<Outlet>();
 const tasks = ref<Task[]>([]);
 const taskToEdit = ref<Task>();
+const recentlyOrderedProducts = ref<EntireItem[]>([]);
 
 const salesVisits = computed(() => salesJourney.value?.salesVisits ?? []);
 
@@ -69,6 +74,13 @@ const [loadingVisitExtras, loadVisitExtras] = useLoadingState(async () => {
         assignedSalesVisitId: currentVisit.value.id,
       }),
     ]);
+
+  if (currentOutlet.value && currentOutlet.value.isBrewManOutlet) {
+    recentlyOrderedProducts.value =
+      await client.outlet.getRecentlyOrderedProductsForBrewmanOutlet.query(
+        currentOutlet.value.id!
+      );
+  }
 });
 
 const [completingVisit, completeVisit] = useLoadingState(async () => {
@@ -116,6 +128,19 @@ const tasksGridConfiguration = new GridConfigurationBuilder<Task>()
       );
   })
   .build();
+
+const recentlyOrderedProductsGridConfiguration =
+  new GridConfigurationBuilder<EntireItem>()
+    .addTextColumn("Name", (item) => item.details.name ?? "-")
+    .addTextColumn("Code", (item) => item.details.code ?? "-")
+    .addTextColumn("Cost Price", (item) => item.details.costPrice.toString())
+    .addActionsColumn((builder) => {
+      builder.addHrefAction(
+        "Open in BrewMan",
+        (item) => `https://localhost:7000/stock/${item.details.id}`
+      );
+    })
+    .build();
 
 watch(
   currentVisit,
@@ -185,9 +210,20 @@ onMounted(refresh);
         </v-list>
       </v-col>
       <v-divider v-if="$vuetify.display.mdAndUp" vertical />
-      <v-col cols="12" md="9" v-if="currentVisit">
+      <v-col class="mb-16" cols="12" md="9" v-if="currentVisit">
         <v-card>
-          <v-card-title>{{ currentVisit.reference }}</v-card-title>
+          <v-card-title
+            >{{ currentVisit.reference }} -
+            <router-link
+              v-if="currentOutlet"
+              :to="{
+                path: `/outlets/${currentOutlet.id}`,
+              }"
+              target="_blank"
+            >
+              {{ currentOutlet.name }}
+            </router-link>
+          </v-card-title>
           <v-card-text>
             <v-row class="justify-space-between align-center">
               <v-col cols="auto">
@@ -230,15 +266,40 @@ onMounted(refresh);
                 />
               </v-col>
             </v-row>
+            <v-row
+              v-if="currentOutlet?.isBrewManOutlet && userStore.hasBrewManLink"
+            >
+              <v-col cols="12">
+                <h6 class="text-h6">Recently Ordered Products</h6>
+              </v-col>
+              <v-col cols="12">
+                <br-grid
+                  style="min-height: 200px"
+                  :grid-configuration="recentlyOrderedProductsGridConfiguration"
+                  :items="recentlyOrderedProducts"
+                  :loading="loadingVisitExtras"
+                />
+              </v-col>
+            </v-row>
           </v-card-text>
           <v-card-actions>
             <v-spacer />
             <br-btn
+              v-if="currentOutlet?.isBrewManOutlet && userStore.hasBrewManLink"
+              variant="text"
+              color="primary"
+              :disabled="currentVisit.status === 'COMPLETE'"
+              :href="`https://localhost:7000/orders/create?outletId=${currentOutlet.id}`"
+              target="_blank"
+            >
+              Create Order
+            </br-btn>
+            <br-btn
               variant="text"
               color="primary"
               :loading="completingVisit"
-              @click="completeVisit"
               :disabled="currentVisit.status === 'COMPLETE'"
+              @click="completeVisit"
             >
               Complete Visit
             </br-btn>

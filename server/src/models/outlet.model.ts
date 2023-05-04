@@ -8,6 +8,7 @@ export const outletValidator = z.object({
   code: z.string(),
   lat: z.string(),
   long: z.string(),
+  isBrewManOutlet: z.boolean().optional().default(false),
 });
 
 export type Outlet = z.infer<typeof outletValidator>;

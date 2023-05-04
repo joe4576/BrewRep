@@ -14,6 +14,9 @@ import { Tenant } from "@server/models/tenant.model";
 import { User } from "@server/models/user.model";
 import { computed, onMounted, ref } from "vue";
 import AddUserDialog from "@/components/settings/AddUserDialog.vue";
+import BrSubtitle from "@/components/text/BrSubtitle.vue";
+import { v4 as uuid } from "uuid";
+import { BrewmanLink } from "@server/models/brewmanLink.model";
 
 type TenantAndUser = Tenant & {
   users: User[];
@@ -21,6 +24,8 @@ type TenantAndUser = Tenant & {
 
 const userStore = useUserStore();
 const { form, formIsValid } = useFormValidation();
+const { form: brewmanForm, formIsValid: brewmanFormIsValid } =
+  useFormValidation();
 const { required } = useValidationRules();
 
 const tenant = ref<TenantAndUser>();
@@ -32,6 +37,9 @@ const showConfirmationDialog = ref(false);
 const showAddUserDialog = ref(false);
 const selectedUser = ref<User>();
 const addedUserName = ref("");
+const brewmanLink = ref<BrewmanLink | null>(null);
+const brewmanApiKey = ref("");
+const brewmanTenantId = ref("");
 
 const users = computed(() => tenant.value?.users ?? []);
 
@@ -58,9 +66,15 @@ const [loadingTenantSettings, loadTenantSettings] = useLoadingState(
       return;
     }
 
-    tenant.value = await client.tenant.getTenant.query(userStore.tenantId);
+    [tenant.value, brewmanLink.value] = await Promise.all([
+      client.tenant.getTenant.query(userStore.tenantId),
+      client.brewmanLink.getBrewmanLink.query(),
+    ]);
 
     tenantName.value = tenant.value.name;
+
+    brewmanApiKey.value = brewmanLink.value?.brewmanApiKey ?? "";
+    brewmanTenantId.value = brewmanLink.value?.brewmanTenantId ?? "";
     resetDirtyState();
   }
 );
@@ -90,6 +104,33 @@ const addUserToCompany = async (userId: string) => {
     showFailedToAddUserSnackbar.value = true;
   }
 };
+
+const [connectingBrewmanLink, connectBrewmanLink] = useLoadingState(
+  async () => {
+    if (!(await brewmanFormIsValid()) || !userStore.tenantId) {
+      return;
+    }
+
+    const link = await client.brewmanLink.createBrewmanLink.mutate({
+      tenantId: userStore.tenantId,
+      id: uuid(),
+      brewmanTenantId: brewmanTenantId.value,
+      brewmanApiKey: brewmanApiKey.value,
+    });
+
+    userStore.brewmanLink = link;
+
+    await loadTenantSettings();
+  }
+);
+
+const [disconnectingBrewmanLink, disconnectBrewmanLink] = useLoadingState(
+  async () => {
+    await client.brewmanLink.disconnectBrewmanLink.mutate();
+    userStore.brewmanLink = null;
+    await loadTenantSettings();
+  }
+);
 
 const usersGridConfiguration = new GridConfigurationBuilder<User>()
   .addTextColumn("Username", (item) => item.name)
@@ -129,32 +170,94 @@ onMounted(loadTenantSettings);
 <template>
   <v-container fluid>
     <v-row>
-      <v-col cols="12">
-        <br-subtitle>Company Settings</br-subtitle>
-      </v-col>
-    </v-row>
-    <v-row>
+      <!--      Company Settings-->
       <v-col cols="12" sm="6">
-        <v-card :loading="loadingTenantSettings">
-          <v-card-title>Tenant Details</v-card-title>
-          <v-card-text>
-            <br-form ref="form" @submit.prevent="updateTenant">
-              <br-text v-model="tenantName" label="Name" :rules="[required]" />
-            </br-form>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <br-btn
-              variant="text"
-              color="primary"
-              :loading="loading"
-              :disabled="!isDirty"
-              @click="updateTenant"
-            >
-              Update
-            </br-btn>
-          </v-card-actions>
-        </v-card>
+        <v-row>
+          <v-col cols="12">
+            <br-subtitle>Company Settings</br-subtitle>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12">
+            <v-card :loading="loadingTenantSettings">
+              <v-card-title>Tenant Details</v-card-title>
+              <v-card-text>
+                <br-form ref="form" @submit.prevent="updateTenant">
+                  <br-text
+                    v-model="tenantName"
+                    label="Name"
+                    :rules="[required]"
+                  />
+                </br-form>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer />
+                <br-btn
+                  variant="text"
+                  color="primary"
+                  :loading="loading"
+                  :disabled="!isDirty"
+                  @click="updateTenant"
+                >
+                  Update
+                </br-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-col>
+
+      <!--      BrewMan Link Settings-->
+      <v-col cols="12" sm="6">
+        <v-row>
+          <v-col cols="12">
+            <br-subtitle>BrewMan Link Settings</br-subtitle>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12">
+            <v-card>
+              <v-card-title>BrewMan Link Settings</v-card-title>
+              <v-card-text>
+                <br-form :disabled="!!brewmanLink" ref="brewmanForm">
+                  <br-text
+                    v-model="brewmanTenantId"
+                    label="BrewMan Tenant ID"
+                    :rules="[required]"
+                  />
+                  <br-text
+                    v-model="brewmanApiKey"
+                    label="BrewMan API Key"
+                    :rules="[required]"
+                  />
+                </br-form>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer />
+                <br-btn
+                  v-if="brewmanLink"
+                  color="red"
+                  variant="text"
+                  :loading="disconnectingBrewmanLink"
+                  @click="disconnectBrewmanLink"
+                >
+                  Disconnect
+                </br-btn>
+
+                <br-btn
+                  v-else
+                  variant="text"
+                  color="primary"
+                  :loading="connectingBrewmanLink"
+                  :disabled="brewmanLink"
+                  @click="connectBrewmanLink"
+                >
+                  Connect
+                </br-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
       </v-col>
     </v-row>
     <v-row class="mt-8">

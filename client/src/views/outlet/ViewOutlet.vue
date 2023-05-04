@@ -6,7 +6,7 @@ import { useFormValidation } from "@/composables/useFormValidation";
 import useLoadingState from "@/composables/useLoadingState";
 import { useValidationRules } from "@/composables/useValidationRules";
 import { Outlet } from "@server/models/outlet.model";
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import BrSubtitle from "@/components/text/BrSubtitle.vue";
 import { useUserStore } from "@/store/userStore";
 import { v4 as uuid } from "uuid";
@@ -38,7 +38,10 @@ const internalOutlet = reactive<Outlet>({
   lat: "",
   long: "",
   tenantId: userStore.tenantId ?? "",
+  isBrewManOutlet: false,
 });
+
+const isBrewManOutlet = computed(() => internalOutlet.isBrewManOutlet);
 
 const [loading, refresh] = useLoadingState(async () => {
   [outlet.value, communicationLogs.value, users.value] = await Promise.all([
@@ -59,11 +62,15 @@ const [savingOutlet, saveOutlet] = useLoadingState(
       return;
     }
 
-    await client.outlet.saveOutlet.mutate({
-      ...outlet.value,
-      ...internalOutlet,
-      tenantId: userStore.tenantId,
-    });
+    if (isBrewManOutlet.value) {
+      await client.outlet.updateBrewManOutlet.mutate(internalOutlet.id);
+    } else {
+      await client.outlet.saveOutlet.mutate({
+        ...outlet.value,
+        ...internalOutlet,
+        tenantId: userStore.tenantId,
+      });
+    }
 
     await refresh();
   },
@@ -90,21 +97,25 @@ onMounted(refresh);
               <br-text
                 v-model="internalOutlet.name"
                 label="Name"
+                :disabled="isBrewManOutlet"
                 :rules="[required]"
               />
               <br-text
                 v-model="internalOutlet.code"
                 label="Code"
+                :disabled="isBrewManOutlet"
                 :rules="[required]"
               />
               <br-text
                 v-model="internalOutlet.lat"
                 label="Latitude"
+                :disabled="isBrewManOutlet"
                 :rules="[required]"
               />
               <br-text
                 v-model="internalOutlet.long"
                 label="Longitude"
+                :disabled="isBrewManOutlet"
                 :rules="[required]"
               />
             </br-form>
@@ -112,6 +123,29 @@ onMounted(refresh);
           <v-card-actions>
             <v-spacer />
             <br-btn
+              v-if="isBrewManOutlet"
+              color="primary"
+              :href="`https://localhost:7000/outlet/${internalOutlet.id}/crm`"
+              target="_blank"
+            >
+              Open in BrewMan
+            </br-btn>
+            <v-tooltip v-if="isBrewManOutlet" location="top">
+              <template #activator="{ props }">
+                <br-btn
+                  v-bind="props"
+                  color="primary"
+                  :disabled="loading || savingOutlet"
+                  :loading="savingOutlet"
+                  @click="saveOutlet"
+                >
+                  Update
+                </br-btn>
+              </template>
+              <span> Fetch updated outlet information from BrewMan </span>
+            </v-tooltip>
+            <br-btn
+              v-else
               color="primary"
               :disabled="loading || savingOutlet"
               :loading="savingOutlet"

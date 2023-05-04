@@ -22,10 +22,11 @@ model User {
 }
 
 model Tenant {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
-  dateCreated DateTime @default(now())
+  dateCreated DateTime     @default(now())
   users       User[]
+  brewmanLink BrewmanLink?
 }
 
 model Task {
@@ -50,6 +51,7 @@ model Outlet {
   long              String
   salesVisits       SalesVisit[]
   communicationLogs CommunicationLog[]
+  isBrewManOutlet   Boolean            @default(false)
 }
 
 model CommunicationLog {
@@ -96,4 +98,12 @@ model SalesJourney {
   completed      Boolean      @default(false)
   inProgress     Boolean      @default(false)
   reference      String       @default("")
+}
+
+model BrewmanLink {
+  tenantId        String @unique
+  id              String @id @default(uuid())
+  brewmanApiKey   String
+  brewmanTenantId String
+  Tenant          Tenant @relation(fields: [tenantId], references: [id])
 }

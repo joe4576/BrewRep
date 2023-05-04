@@ -119,4 +119,74 @@ export const outletRouter = router({
         });
       }
     }),
+
+  getAllBrewManOutlets: tenantProcedure.query(async ({ ctx }) => {
+    const { tenant } = ctx;
+
+    const outletService = new OutletService(tenant.id!);
+
+    try {
+      return outletService.getAllBrewManOutlets();
+    } catch (e) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        cause: e,
+        message: "Failed to get brewman outlets",
+      });
+    }
+  }),
+
+  importBrewManOutlets: tenantProcedure
+    .input(uuidArrayValidator)
+    .mutation(async ({ input, ctx }) => {
+      const { tenant } = ctx;
+
+      const outletService = new OutletService(tenant.id!);
+
+      try {
+        return outletService.importBrewManOutlets(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to get brewman outlets",
+        });
+      }
+    }),
+
+  updateBrewManOutlet: tenantProcedure
+    .input(uuidValidator)
+    .mutation(async ({ input, ctx }) => {
+      const { tenant } = ctx;
+
+      const outletService = new OutletService(tenant.id!);
+
+      try {
+        return outletService.updateBrewManOutlet(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to get updated brewman outlet",
+        });
+      }
+    }),
+
+  getRecentlyOrderedProductsForBrewmanOutlet: tenantProcedure
+    .input(uuidValidator)
+    .query(async ({ input, ctx }) => {
+      const { tenant } = ctx;
+
+      const outletService = new OutletService(tenant.id!);
+
+      try {
+        return outletService.getRecentlyOrderedProductsForBrewmanOutlet(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to get recently ordered products",
+        });
+      }
+    }),
 });

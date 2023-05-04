@@ -12,6 +12,7 @@ import { outletRouter } from "./routers/outlet.router";
 import { salesJourneyRouter } from "./routers/salesJourney.router";
 import { salesVisitRouter } from "./routers/salesVisit.router.ts";
 import { communicationLogsRouter } from "./routers/communicationLogs.router";
+import { brewmanLinkRouter } from "./routers/brewmanLink.router";
 
 export const appRouter = router({
   user: userRouter,
@@ -22,6 +23,7 @@ export const appRouter = router({
   salesJourney: salesJourneyRouter,
   salesVisit: salesVisitRouter,
   communicationLog: communicationLogsRouter,
+  brewmanLink: brewmanLinkRouter,
 });
 
 export type AppRouter = typeof appRouter;
