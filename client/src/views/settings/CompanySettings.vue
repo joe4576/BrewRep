@@ -34,6 +34,7 @@ const showUpdatedSnackbar = ref(false);
 const showAddedUserSnackbar = ref(false);
 const showFailedToAddUserSnackbar = ref(false);
 const showConfirmationDialog = ref(false);
+const showResetDemoDataConfirmationDialog = ref(false);
 const showAddUserDialog = ref(false);
 const selectedUser = ref<User>();
 const addedUserName = ref("");
@@ -131,6 +132,11 @@ const [disconnectingBrewmanLink, disconnectBrewmanLink] = useLoadingState(
     await loadTenantSettings();
   }
 );
+
+const [resettingDemoData, resetDemoData] = useLoadingState(async () => {
+  await client.tenant.resetDemoData.mutate();
+  showResetDemoDataConfirmationDialog.value = false;
+});
 
 const usersGridConfiguration = new GridConfigurationBuilder<User>()
   .addTextColumn("Username", (item) => item.name)
@@ -277,7 +283,10 @@ onMounted(loadTenantSettings);
   <portal to="footer">
     <button-bar>
       <template #right>
-        <br-btn color="primary" @click="showAddUserDialog = true">
+        <br-btn color="red" @click="showResetDemoDataConfirmationDialog = true">
+          Reset Demo Data
+        </br-btn>
+        <br-btn class="ml-2" color="primary" @click="showAddUserDialog = true">
           Add user
         </br-btn>
       </template>
@@ -290,6 +299,15 @@ onMounted(loadTenantSettings);
     @accept="removeUserFromCompany"
   >
     Are you sure you want to remove {{ selectedUser.name }} from the company?
+  </br-confirmation-dialog>
+
+  <br-confirmation-dialog
+    v-if="showResetDemoDataConfirmationDialog"
+    v-model="showResetDemoDataConfirmationDialog"
+    :loading="resettingDemoData"
+    @accept="resetDemoData"
+  >
+    Are you sure you want to reset your demo data? This cannot be undone
   </br-confirmation-dialog>
 
   <add-user-dialog

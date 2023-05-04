@@ -3,6 +3,7 @@ import generateTenantData from "./tenants";
 import generateTaskData from "./tasks";
 import generateOutletData from "./outlets";
 import generateSalesVisitData from "./salesVisits";
+import { createSharedIds } from "./utils";
 
 const prisma = new PrismaClient();
 
@@ -20,11 +21,21 @@ async function dropAllRows() {
 }
 
 async function main() {
+  const sharedIds = createSharedIds();
+
   await dropAllRows();
-  await generateTenantData(prisma);
-  await generateTaskData(prisma);
-  await generateOutletData(prisma);
-  await generateSalesVisitData(prisma);
+  await generateTenantData(prisma, {
+    sharedIds,
+  });
+  await generateTaskData(prisma, {
+    sharedIds,
+  });
+  await generateOutletData(prisma, {
+    sharedIds,
+  });
+  await generateSalesVisitData(prisma, {
+    sharedIds,
+  });
 }
 
 main().catch((e) => {

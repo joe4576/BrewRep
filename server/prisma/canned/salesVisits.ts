@@ -1,16 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import { DateUtils } from "./dateUtils";
-import {
-  joesBreweryId,
-  premierSystemsId,
-  stMarysId,
-  westQuayId,
-  wetherspoonsId,
-} from "./outlets";
-import { chrisId, joeId, tenantId } from "./tenants";
 import { v4 as uuid } from "uuid";
+import { SharedIds } from "./utils";
 
-export default async function generateSalesVisitData(prisma: PrismaClient) {
+export default async function generateSalesVisitData(
+  prisma: PrismaClient,
+  options: {
+    sharedIds: SharedIds;
+  }
+) {
+  const { sharedIds } = options;
+
   // Journey 1
   const visit1Id = uuid();
   const visit2Id = uuid();
@@ -24,8 +24,8 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
 
   await prisma.salesJourney.create({
     data: {
-      tenantId,
-      assignedUserId: joeId,
+      tenantId: sharedIds.tenantId,
+      assignedUserId: sharedIds.userId,
       date: new DateUtils("monday").toDate(),
       reference: "Journey #1",
       salesVisits: {
@@ -33,8 +33,8 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
           data: [
             {
               id: visit1Id,
-              tenantId,
-              outletId: joesBreweryId,
+              tenantId: sharedIds.tenantId,
+              outletId: sharedIds.joesBreweryId,
               startTime: new DateUtils("monday").plusHours(10).toDate(),
               endTime: new DateUtils("monday")
                 .plusHours(11)
@@ -44,8 +44,8 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
             },
             {
               id: visit2Id,
-              tenantId,
-              outletId: stMarysId,
+              tenantId: sharedIds.tenantId,
+              outletId: sharedIds.stMarysId,
               startTime: new DateUtils("monday")
                 .plusHours(12)
                 .plusMinutes(30)
@@ -58,8 +58,8 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
             },
             {
               id: visit3Id,
-              tenantId,
-              outletId: wetherspoonsId,
+              tenantId: sharedIds.tenantId,
+              outletId: sharedIds.wetherspoonsId,
               startTime: new DateUtils("monday").plusHours(16).toDate(),
               endTime: new DateUtils("monday").plusHours(17).toDate(),
               reference: "Wetherspoons Visit",
@@ -72,8 +72,8 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
 
   await prisma.salesJourney.create({
     data: {
-      tenantId,
-      assignedUserId: chrisId,
+      tenantId: sharedIds.tenantId,
+      assignedUserId: sharedIds.userId,
       date: new DateUtils("wednesday").toDate(),
       reference: "Journey #2",
       salesVisits: {
@@ -81,16 +81,16 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
           data: [
             {
               id: visit4Id,
-              tenantId,
-              outletId: westQuayId,
+              tenantId: sharedIds.tenantId,
+              outletId: sharedIds.westQuayId,
               startTime: new DateUtils("wednesday").plusHours(9).toDate(),
               endTime: new DateUtils("wednesday").plusHours(10).toDate(),
               reference: "West Quay visit #2",
             },
             {
               id: visit5Id,
-              tenantId,
-              outletId: wetherspoonsId,
+              tenantId: sharedIds.tenantId,
+              outletId: sharedIds.wetherspoonsId,
               startTime: new DateUtils("wednesday")
                 .plusHours(11)
                 .plusMinutes(30)
@@ -103,8 +103,8 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
             },
             {
               id: visit6Id,
-              tenantId,
-              outletId: joesBreweryId,
+              tenantId: sharedIds.tenantId,
+              outletId: sharedIds.joesBreweryId,
               startTime: new DateUtils("wednesday")
                 .plusHours(13)
                 .plusMinutes(45)
@@ -115,8 +115,8 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
 
             {
               id: visit7Id,
-              tenantId,
-              outletId: premierSystemsId,
+              tenantId: sharedIds.tenantId,
+              outletId: sharedIds.premierSystemsId,
               startTime: new DateUtils("wednesday").plusHours(16).toDate(),
               endTime: new DateUtils("wednesday").plusHours(17).toDate(),
               reference: "Premier Systems visit #2",
@@ -130,40 +130,40 @@ export default async function generateSalesVisitData(prisma: PrismaClient) {
   await prisma.communicationLog.createMany({
     data: [
       {
-        tenantId,
-        authorId: joeId,
+        tenantId: sharedIds.tenantId,
+        authorId: sharedIds.userId,
         description: "Initial Communication",
-        outletId: wetherspoonsId,
+        outletId: sharedIds.wetherspoonsId,
       },
       {
-        tenantId,
+        tenantId: sharedIds.tenantId,
         salesVisitId: visit1Id,
-        authorId: joeId,
+        authorId: sharedIds.userId,
         description:
           "Follow up communication, they might be interested in ordering",
-        outletId: joesBreweryId,
+        outletId: sharedIds.joesBreweryId,
       },
       {
-        tenantId,
+        tenantId: sharedIds.tenantId,
         salesVisitId: visit2Id,
-        authorId: joeId,
+        authorId: sharedIds.userId,
         description:
           "First conversation went well, they will be in contact to arrange a follow up meeting",
-        outletId: stMarysId,
+        outletId: sharedIds.stMarysId,
       },
       {
-        tenantId,
+        tenantId: sharedIds.tenantId,
         salesVisitId: visit2Id,
-        authorId: chrisId,
+        authorId: sharedIds.userId,
         description: "Chris spoke to them and they want to order next week",
-        outletId: stMarysId,
+        outletId: sharedIds.stMarysId,
       },
       {
-        tenantId,
+        tenantId: sharedIds.tenantId,
         salesVisitId: visit3Id,
-        authorId: joeId,
+        authorId: sharedIds.userId,
         description: "They are interested in Plucky Star IPA",
-        outletId: wetherspoonsId,
+        outletId: sharedIds.wetherspoonsId,
       },
     ],
   });

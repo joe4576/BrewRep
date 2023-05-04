@@ -1,51 +1,51 @@
 import { PrismaClient } from "@prisma/client";
-import { tenantId } from "./tenants";
-import { v4 as uuid } from "uuid";
+import { SharedIds } from "./utils";
 
-export const joesBreweryId = uuid();
-export const wetherspoonsId = uuid();
-export const premierSystemsId = uuid();
-export const stMarysId = uuid();
-export const westQuayId = uuid();
+export default async function generateOutletData(
+  prisma: PrismaClient,
+  options: {
+    sharedIds: SharedIds;
+  }
+) {
+  const { sharedIds } = options;
 
-export default async function generateOutletData(prisma: PrismaClient) {
   await prisma.outlet.createMany({
     data: [
       {
-        id: joesBreweryId,
-        tenantId,
+        id: sharedIds.joesBreweryId,
+        tenantId: sharedIds.tenantId,
         name: "Joe's Brewery",
         code: "JB",
         lat: "50.896904",
         long: "-1.395288",
       },
       {
-        id: wetherspoonsId,
-        tenantId,
+        id: sharedIds.wetherspoonsId,
+        tenantId: sharedIds.tenantId,
         name: "Wetherspoons",
         code: "WSP",
         lat: "50.903198",
         long: "-1.392230",
       },
       {
-        id: premierSystemsId,
-        tenantId,
+        id: sharedIds.premierSystemsId,
+        tenantId: sharedIds.tenantId,
         name: "Premier Systems",
         code: "PSLTD",
         lat: "50.895232",
         long: "-1.382204",
       },
       {
-        id: stMarysId,
-        tenantId,
+        id: sharedIds.stMarysId,
+        tenantId: sharedIds.tenantId,
         name: "St Mary's Staduim",
         code: "SMS",
         lat: "50.905641",
         long: "-1.389542",
       },
       {
-        id: westQuayId,
-        tenantId,
+        id: sharedIds.westQuayId,
+        tenantId: sharedIds.tenantId,
         name: "Westquay",
         code: "WQY",
         lat: "50.903909",

@@ -76,4 +76,33 @@ export const tenantRouter = router({
         });
       }
     }),
+
+  clearDemoData: tenantProcedure.mutation(async ({ ctx }) => {
+    const tenantService = new ProtectedTenantService(ctx.tenant.id!);
+
+    try {
+      await tenantService.clearDemoData();
+    } catch (e) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        cause: e,
+      });
+    }
+  }),
+
+  resetDemoData: tenantProcedure.mutation(async ({ ctx }) => {
+    const tenantService = new ProtectedTenantService(
+      ctx.tenant.id!,
+      ctx.session.user.id
+    );
+
+    try {
+      await tenantService.resetDemoData();
+    } catch (e) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        cause: e,
+      });
+    }
+  }),
 });

@@ -1,6 +1,10 @@
 import prisma from "../../prismaClient";
 import { Tenant } from "../models/tenant.model";
 import { BaseService } from "./baseService";
+import generateTaskData from "../../prisma/canned/tasks";
+import generateOutletData from "../../prisma/canned/outlets";
+import generateSalesVisitData from "../../prisma/canned/salesVisits";
+import { createSharedIds, SharedIds } from "../../prisma/canned/utils";
 
 export class TenantService {
   public async getTenant(tenantId: string) {
@@ -101,6 +105,10 @@ export class TenantService {
 }
 
 export class ProtectedTenantService extends BaseService {
+  constructor(protected tenantId: string, private userId?: string) {
+    super(tenantId);
+  }
+
   public async saveTenant(tenant: Tenant) {
     if (tenant.id !== this.tenantId) {
       throw new Error("Tenant ids don't match");
@@ -114,5 +122,65 @@ export class ProtectedTenantService extends BaseService {
     });
 
     return updatedTenant;
+  }
+
+  public async clearDemoData() {
+    // drop everything except for tenant and user
+    await prisma.$transaction([
+      prisma.task.deleteMany({
+        where: {
+          tenantId: this.tenantId,
+        },
+      }),
+      prisma.outlet.deleteMany({
+        where: {
+          tenantId: this.tenantId,
+        },
+      }),
+      prisma.salesJourney.deleteMany({
+        where: {
+          tenantId: this.tenantId,
+        },
+      }),
+      prisma.salesVisit.deleteMany({
+        where: {
+          tenantId: this.tenantId,
+        },
+      }),
+      prisma.communicationLog.deleteMany({
+        where: {
+          tenantId: this.tenantId,
+        },
+      }),
+      prisma.brewmanLink.deleteMany({
+        where: {
+          tenantId: this.tenantId,
+        },
+      }),
+    ]);
+  }
+
+  public async resetDemoData() {
+    await this.clearDemoData();
+
+    if (!this.userId) {
+      throw new Error("No user ID provided");
+    }
+
+    const sharedIds: SharedIds = {
+      ...createSharedIds(),
+      tenantId: this.tenantId,
+      userId: this.userId,
+    };
+
+    await generateTaskData(prisma, {
+      sharedIds,
+    });
+    await generateOutletData(prisma, {
+      sharedIds,
+    });
+    await generateSalesVisitData(prisma, {
+      sharedIds,
+    });
   }
 }
