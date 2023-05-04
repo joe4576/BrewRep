@@ -5,10 +5,13 @@ const userStore = useUserStore();
 </script>
 
 <template>
-  <div>
-    Home view
-    <v-row v-if="userStore.user">
-      <pre>{{ userStore.user }}</pre>
+  <v-container>
+    <v-row class="justify-center align-center text-center" style="height: 100%">
+      <v-col cols="auto">
+        <h2 class="text-h2">
+          Welcome to BrewRep, {{ userStore.user?.name ?? "-" }}
+        </h2>
+      </v-col>
     </v-row>
-  </div>
+  </v-container>
 </template>

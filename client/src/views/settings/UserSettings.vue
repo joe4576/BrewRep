@@ -32,6 +32,11 @@ const [loading, updateUser] = useLoadingState(async () => {
   });
 
   showUpdatedSnackbar.value = true;
+
+  if (userStore.user) {
+    userStore.user.name = userName.value;
+  }
+
   resetDirtyState();
 });
 
