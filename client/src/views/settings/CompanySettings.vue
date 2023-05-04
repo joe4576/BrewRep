@@ -111,12 +111,14 @@ const [connectingBrewmanLink, connectBrewmanLink] = useLoadingState(
       return;
     }
 
-    await client.brewmanLink.createBrewmanLink.mutate({
+    const link = await client.brewmanLink.createBrewmanLink.mutate({
       tenantId: userStore.tenantId,
       id: uuid(),
       brewmanTenantId: brewmanTenantId.value,
       brewmanApiKey: brewmanApiKey.value,
     });
+
+    userStore.brewmanLink = link;
 
     await loadTenantSettings();
   }
@@ -217,7 +219,7 @@ onMounted(loadTenantSettings);
             <v-card>
               <v-card-title>BrewMan Link Settings</v-card-title>
               <v-card-text>
-                <br-form :disabled="brewmanLink" ref="brewmanForm">
+                <br-form :disabled="!!brewmanLink" ref="brewmanForm">
                   <br-text
                     v-model="brewmanTenantId"
                     label="BrewMan Tenant ID"

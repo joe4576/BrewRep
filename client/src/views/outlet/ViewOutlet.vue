@@ -6,7 +6,7 @@ import { useFormValidation } from "@/composables/useFormValidation";
 import useLoadingState from "@/composables/useLoadingState";
 import { useValidationRules } from "@/composables/useValidationRules";
 import { Outlet } from "@server/models/outlet.model";
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import BrSubtitle from "@/components/text/BrSubtitle.vue";
 import { useUserStore } from "@/store/userStore";
 import { v4 as uuid } from "uuid";
@@ -38,7 +38,10 @@ const internalOutlet = reactive<Outlet>({
   lat: "",
   long: "",
   tenantId: userStore.tenantId ?? "",
+  isBrewManOutlet: false,
 });
+
+const isBrewManOutlet = computed(() => internalOutlet.isBrewManOutlet);
 
 const [loading, refresh] = useLoadingState(async () => {
   [outlet.value, communicationLogs.value, users.value] = await Promise.all([
@@ -59,11 +62,15 @@ const [savingOutlet, saveOutlet] = useLoadingState(
       return;
     }
 
-    await client.outlet.saveOutlet.mutate({
-      ...outlet.value,
-      ...internalOutlet,
-      tenantId: userStore.tenantId,
-    });
+    if (isBrewManOutlet.value) {
+      await client.outlet.updateBrewManOutlet.mutate(internalOutlet.id);
+    } else {
+      await client.outlet.saveOutlet.mutate({
+        ...outlet.value,
+        ...internalOutlet,
+        tenantId: userStore.tenantId,
+      });
+    }
 
     await refresh();
   },
@@ -111,6 +118,14 @@ onMounted(refresh);
           </v-card-text>
           <v-card-actions>
             <v-spacer />
+            <br-btn
+              v-if="userStore.hasBrewManLink"
+              color="primary"
+              :href="`https://localhost:7000/outlet/${internalOutlet.id}/crm`"
+              target="_blank"
+            >
+              Open in BrewMan
+            </br-btn>
             <br-btn
               color="primary"
               :disabled="loading || savingOutlet"

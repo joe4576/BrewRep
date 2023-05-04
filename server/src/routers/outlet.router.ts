@@ -153,4 +153,22 @@ export const outletRouter = router({
         });
       }
     }),
+
+  updateBrewManOutlet: tenantProcedure
+    .input(uuidValidator)
+    .mutation(async ({ input, ctx }) => {
+      const { tenant } = ctx;
+
+      const outletService = new OutletService(tenant.id!);
+
+      try {
+        return outletService.updateBrewManOutlet(input);
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          cause: e,
+          message: "Failed to get updated brewman outlet",
+        });
+      }
+    }),
 });

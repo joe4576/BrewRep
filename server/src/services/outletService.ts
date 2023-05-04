@@ -5,6 +5,7 @@ import { globalBrewmanAuth } from "../../bmapi/auth";
 import { BrewmanLinkService } from "./brewmanLinkService";
 import {
   postOutletV1GetAllOutlets,
+  postOutletV1GetOutlet,
   postOutletV1GetOutlets,
 } from "../../bmapi/services";
 import { Outlet as BrewManOutlet } from "../../bmapi/types";
@@ -85,6 +86,10 @@ export class OutletService extends BaseService {
       throw new Error("Tenant ids don't match");
     }
 
+    if (outlet.isBrewManOutlet) {
+      throw new Error("Can't update BrewMan outlet directly");
+    }
+
     const updatedOutlet = await prisma.outlet.update({
       where: {
         id: outlet.id,
@@ -119,7 +124,7 @@ export class OutletService extends BaseService {
     };
   }
 
-  public async getAllBrewManOutlets(): Promise<Outlet[]> {
+  private async getBrewManLink() {
     const brewmanLinkService = new BrewmanLinkService(this.tenantId);
 
     const link = await brewmanLinkService.getBrewmanLink();
@@ -128,7 +133,13 @@ export class OutletService extends BaseService {
       throw new Error("No BrewMan link found");
     }
 
-    const { brewmanTenantId, brewmanApiKey } = link;
+    return {
+      ...link,
+    };
+  }
+
+  public async getAllBrewManOutlets(): Promise<Outlet[]> {
+    const { brewmanTenantId, brewmanApiKey } = await this.getBrewManLink();
 
     globalBrewmanAuth.apiToken = brewmanApiKey;
 
@@ -146,15 +157,7 @@ export class OutletService extends BaseService {
   }
 
   public async importBrewManOutlets(brewmanOutletIds: string[]) {
-    const brewmanLinkService = new BrewmanLinkService(this.tenantId);
-
-    const link = await brewmanLinkService.getBrewmanLink();
-
-    if (!link) {
-      throw new Error("No BrewMan link found");
-    }
-
-    const { brewmanTenantId, brewmanApiKey } = link;
+    const { brewmanTenantId, brewmanApiKey } = await this.getBrewManLink();
 
     globalBrewmanAuth.apiToken = brewmanApiKey;
 
@@ -183,5 +186,27 @@ export class OutletService extends BaseService {
     });
 
     return newOutlets;
+  }
+
+  public async updateBrewManOutlet(id: string) {
+    const { brewmanTenantId, brewmanApiKey } = await this.getBrewManLink();
+
+    const brewManOutlet = await postOutletV1GetOutlet({
+      tenantId: brewmanTenantId,
+      outletId: id,
+    });
+
+    const transformedOutlet = this.buildOutletFromBrewManOutlet(
+      brewManOutlet.data.outlet
+    );
+
+    const updatedOutlet = await prisma.outlet.update({
+      where: {
+        id,
+      },
+      data: transformedOutlet,
+    });
+
+    return updatedOutlet;
   }
 }
