@@ -7,22 +7,29 @@ import BrEventSummaryMenu, {
 import TaskEditDialog from "@/components/tasks/TaskEditDialog.vue";
 import { useCalendar } from "@/composables/useCalendar";
 import useLoadingState from "@/composables/useLoadingState";
-import { eventIsTask } from "@/services/plannerService";
 import { Task } from "@server/models/task.model";
 import { User } from "@server/models/user.model";
 import { computed, onMounted, ref } from "vue";
 import { SalesVisit } from "@server/models/salesVisit.model";
+import { SalesJourney } from "@server/models/salesJourney.model";
+
+type TaskAndVisit = Partial<Task & SalesVisit>;
+
+type SalesVisitAndJourney = SalesVisit & {
+  salesJourney: SalesJourney | null;
+};
 
 const tasks = ref<Task[]>([]);
 const users = ref<User[]>([]);
-const salesVisits = ref<SalesVisit[]>([]);
+const salesVisits = ref<SalesVisitAndJourney[]>([]);
 const selectedTask = ref<Task>();
+const selectedVisit = ref<SalesVisitAndJourney>();
 const showEditTaskDialog = ref(false);
 const hideWeekends = ref(true);
 const summaryMenuActivator = ref();
 
 const [refreshLoading, refresh] = useLoadingState(async () => {
-  [tasks.value, users.value] = await Promise.all([
+  [tasks.value, users.value, salesVisits.value] = await Promise.all([
     client.task.getAllTasks.query(),
     client.user.getAllUsers.query(),
     client.salesVisit.getAllSalesVisits.query(),
@@ -38,24 +45,103 @@ const [savingTask, saveTask] = useLoadingState(
   }
 );
 
+const [savingVisit, saveVisit] = useLoadingState(
+  async (visit: SalesVisit, newStartTime: Date, newEndTime: Date) => {
+    await client.salesVisit.saveSalesVisit.mutate({
+      ...visit,
+      startTime: newStartTime,
+      endTime: newEndTime,
+    });
+    await refresh();
+  }
+);
+
+const tasksAndVisits = computed((): TaskAndVisit[] => [
+  ...tasks.value,
+  ...salesVisits.value,
+]);
+
+const eventIsTask = (event: TaskAndVisit): event is Task =>
+  event.description !== undefined;
+
+const eventIsVisit = (event: TaskAndVisit): event is SalesVisitAndJourney =>
+  event.reference !== undefined;
+
 const { events, onEventClick, onEventDrop, onEventDurationChange } =
   useCalendar({
-    events: tasks,
-    titleExtractor: (item) => item.description,
-    contentExtractor: (item) => item.description,
-    startDateExtractor: (item) => item.dateDue,
-    // Tasks don't have a duration, so set to 1 hour so they are visible
-    endDateExtractor: (item) => item.dateDue.addHours(1),
-    onEventDurationChange: (item) => {
-      // TODO
+    events: tasksAndVisits,
+    titleExtractor: (item) => {
+      if (eventIsTask(item)) {
+        return item.description;
+      }
+
+      if (eventIsVisit(item)) {
+        return item.reference;
+      }
+
+      return "";
+    },
+    contentExtractor: (item) => {
+      if (eventIsTask(item)) {
+        return item.description;
+      }
+
+      if (eventIsVisit(item)) {
+        return item.reference;
+      }
+
+      return "";
+    },
+    startDateExtractor: (item) => {
+      if (eventIsTask(item)) {
+        return item.dateDue;
+      }
+
+      if (eventIsVisit(item)) {
+        return item.startTime;
+      }
+
+      return new Date();
+    },
+    endDateExtractor: (item) => {
+      // Tasks don't have a duration, so set to 1 hour so they are visible
+      if (eventIsTask(item)) {
+        return item.dateDue.addHours(1);
+      }
+
+      if (eventIsVisit(item)) {
+        return item.endTime;
+      }
+
+      return new Date();
+    },
+    onEventDurationChange: async (item) => {
+      if (eventIsVisit(item.event.payload)) {
+        await saveVisit(item.event.payload, item.event.start, item.event.end);
+      }
     },
     onEventClick: async (item, nativeEvent) => {
-      selectedTask.value = item.payload;
+      if (eventIsTask(item.payload)) {
+        selectedTask.value = item.payload;
+        selectedVisit.value = undefined;
+      }
+
+      if (eventIsVisit(item.payload)) {
+        selectedVisit.value = item.payload;
+        selectedTask.value = undefined;
+      }
+
       summaryMenuActivator.value = nativeEvent.target;
       nativeEvent.preventDefault();
     },
     onEventDrop: async (item) => {
-      await saveTask(item.event.payload, item.newDate);
+      if (eventIsTask(item.event.payload)) {
+        await saveTask(item.event.payload, item.newDate);
+      }
+
+      if (eventIsVisit(item.event.payload)) {
+        await saveVisit(item.event.payload, item.event.start, item.event.end);
+      }
     },
     class: (item) => {
       if (eventIsTask(item)) {
@@ -67,7 +153,7 @@ const { events, onEventClick, onEventDrop, onEventDurationChange } =
     resizeable: (item) => !eventIsTask(item),
   });
 
-const eventSummaryItems: SummaryItem[] = [
+const taskEventSummaryItems: SummaryItem[] = [
   {
     icon: "mdi-account",
     body: computed(
@@ -88,6 +174,35 @@ const eventSummaryItems: SummaryItem[] = [
     ),
   },
 ];
+
+const visitEventSummaryItems: SummaryItem[] = [
+  {
+    icon: "mdi-account",
+    body: computed(
+      () =>
+        users.value.find(
+          (user) =>
+            user.id === selectedVisit.value?.salesJourney?.assignedUserId
+        )?.name ?? "N/A"
+    ),
+  },
+  {
+    icon: "mdi-car",
+    body: computed(
+      () => selectedVisit.value?.salesJourney?.reference ?? "No Journey"
+    ),
+  },
+  {
+    icon: "mdi-clock-outline",
+    body: computed(
+      () =>
+        "Time: " +
+        selectedVisit.value?.startTime.formatTime("HH:mm") +
+        " - " +
+        selectedVisit.value?.endTime.formatTime("HH:mm")
+    ),
+  },
+];
 </script>
 
 <template>
@@ -101,7 +216,7 @@ const eventSummaryItems: SummaryItem[] = [
           density="compact"
         />
       </div>
-      <div v-if="savingTask || refreshLoading">
+      <div v-if="savingTask || refreshLoading || savingVisit">
         <v-progress-circular indeterminate />
       </div>
     </div>
@@ -116,13 +231,25 @@ const eventSummaryItems: SummaryItem[] = [
   </v-container>
 
   <br-event-summary-menu
-    :payload="selectedTask"
+    :payload="selectedTask ?? selectedVisit"
     :activator="summaryMenuActivator"
-    title="Task"
-    prepend-icon="mdi-checkbox-multiple-marked-outline"
-    tooltip-text="Edit Task"
-    :summary-items="eventSummaryItems"
-    @edit="showEditTaskDialog = true"
+    :title="selectedTask ? 'Task' : 'Visit'"
+    :prepend-icon="
+      selectedTask
+        ? 'mdi-checkbox-multiple-marked-outline'
+        : 'mdi-account-group-outline'
+    "
+    :tooltip-text="selectedTask ? 'Edit Task' : 'Edit Visit'"
+    :summary-items="
+      selectedTask ? taskEventSummaryItems : visitEventSummaryItems
+    "
+    @edit="
+      selectedTask
+        ? (showEditTaskDialog = true)
+        : $router.push({
+            path: '/sales/visits/' + selectedVisit?.id,
+          })
+    "
   />
 
   <task-edit-dialog
