@@ -125,7 +125,7 @@ onMounted(refresh);
             <br-btn
               v-if="isBrewManOutlet"
               color="primary"
-              :href="`https://localhost:7000/outlet/${internalOutlet.id}/crm`"
+              :href="`https://brewman.premiersystems.com/outlet/${internalOutlet.id}/crm`"
               target="_blank"
             >
               Open in BrewMan

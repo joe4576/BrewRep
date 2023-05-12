@@ -137,7 +137,7 @@ const recentlyOrderedProductsGridConfiguration =
     .addActionsColumn((builder) => {
       builder.addHrefAction(
         "Open in BrewMan",
-        (item) => `https://localhost:7000/stock/${item.details.id}`
+        (item) => `https://brewman.premiersystems.com/stock/${item.details.id}`
       );
     })
     .build();
@@ -289,7 +289,7 @@ onMounted(refresh);
               variant="text"
               color="primary"
               :disabled="currentVisit.status === 'COMPLETE'"
-              :href="`https://localhost:7000/orders/create?outletId=${currentOutlet.id}`"
+              :href="`https://brewman.premiersystems.com/orders/create?outletId=${currentOutlet.id}`"
               target="_blank"
             >
               Create Order

@@ -15,7 +15,7 @@ import * as https from "https";
 import { globalBrewmanAuth } from "./auth";
 
 const baseConfig: (apiToken: string) => AxiosRequestConfig = (apiToken) => ({
-  baseURL: "https://localhost:7000",
+  baseURL: "https://brewman.premiersystems.com",
   httpsAgent: new https.Agent({ rejectUnauthorized: false }),
   headers: {
     "Content-Encoding": "UTF-8",
