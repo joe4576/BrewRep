@@ -9,8 +9,6 @@ interface BrEventProps<T = unknown> {
 
 const props = defineProps<BrEventProps>();
 
-// TODO add visit
-
 const formatDate = (date: string | Date) => {
   if (typeof date === "string") {
     return date;

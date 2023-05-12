@@ -1,8 +1,8 @@
-import { TRPCError, inferAsyncReturnType } from "@trpc/server";
+import { inferAsyncReturnType, TRPCError } from "@trpc/server";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { User } from "./models/user.model";
 import { AuthenticationService } from "./services/authenticationService";
-import { PublicUserService, UserService } from "./services/userService";
+import { PublicUserService } from "./services/userService";
 import { Tenant } from "./models/tenant.model";
 import { TenantService } from "./services/tenantService";
 
@@ -46,7 +46,6 @@ export const createContext = async ({
   if (tenantId && session) {
     const tenantService = new TenantService();
     try {
-      // TODO make id requried
       tenant = await tenantService.verifyTenantAndUser(
         tenantId,
         session.user.id!
