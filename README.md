@@ -1,26 +1,40 @@
 # BrewRep - Final Year Project
 
----
+BrewRep is a CRM (Customer Relationship management) application designed for sales representitives of breweries and distilleries.
+
+It is a full-stack web application built using Vue 3, TypeScript, NodeJS, tRPC, Prisma, PostgreSQL and Zod.
 
 ## Installation Guide
 
 ### Prerequisites
 
-- Node v16.17.0
-- Docker desktop
-- On Windows, install `make` command
+- Node v16.17.0+
+- Docker
 
 ### Setup
 
-- Navigate to server directory and run `npm ci`
-- Navigate to client directory and run `npm ci`
-- Ensure docker desktop is running
-- Navigate to project root and run `make up`
-- Navigate to server directory and run `npm run dev`
-- Navigate to client directory and run `npm run dev`
-- Go to `http://127.0.0.1:3000/`
+- Install dependencies
+
+`cd server && npm ci`
+
+`cd client && npm ci`
+
+- Start the database container
+
+`make up`
+
+- Create and seed the database
+
+`make refreshdb`
+
+- Spin up local dev servers
+
+`cd server && npm run dev`
+
+`cd client && npm run dev`
 
 ### Clean up
 
-- Navigate to root and run `make down`
-- Note: `Ctrl-C` in the terminal windows to stop the dev servers
+- Stop the database container
+
+`make down`
